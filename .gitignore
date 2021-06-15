@@ -1,0 +1,10 @@
+# IDE and Python
+.idea
+__pycache__
+
+
+# Data
+data/*.toml
+!data/*.EXAMPLE.toml
+
+jingles

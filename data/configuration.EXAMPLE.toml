@@ -1,0 +1,7 @@
+[Auth]
+token = "bot token here"
+
+[Jingles]
+enabled_servers = [
+    125450518346526876, # Some server id
+]
