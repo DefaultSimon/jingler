@@ -1,2 +1,2 @@
-poetry run python jingle.py
+poetry run python jingle_bot.py
 pause

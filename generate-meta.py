@@ -4,13 +4,13 @@ import pathlib
 from json import dump
 
 import mutagen
-from discordjingles.jingles import JINGLES_DIR
-from discordjingles.utilities import generate_id
+from jinglebot.jingles import JINGLES_DIR
+from jinglebot.utilities import generate_id
 
 files_with_missing_meta: List[Tuple[pathlib.Path, pathlib.Path]] = []
 for non_meta_file in filter(lambda file: file.suffix not in [".meta", ".disabled", ".old"], JINGLES_DIR.iterdir()):
     # List every file that is missing .meta
-    meta_file = pathlib.Path(JINGLES_DIR, non_meta_file.name + ".meta")
+    meta_file = JINGLES_DIR / (non_meta_file.name + ".meta")
 
     if not meta_file.exists():
         files_with_missing_meta.append((non_meta_file, meta_file))

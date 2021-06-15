@@ -3,8 +3,8 @@ from typing import Dict, Optional
 
 from discord import Guild
 
-from discordjingles.jingles import Jingle
-from discordjingles.utilities import Singleton
+from jinglebot.jingles import Jingle
+from jinglebot.utilities import Singleton
 
 
 class JingleMode(Enum):

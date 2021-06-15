@@ -1,21 +1,19 @@
 import logging
-from typing import Optional
-from random import choice
-
-from discordjingles.jingles import Jingle
-from discordjingles.player import play_jingle, get_proper_jingle
-
 logging.basicConfig(level=logging.INFO)
 
+from typing import Optional
+
 import asyncio
-from discord import Member, VoiceState, VoiceChannel, FFmpegOpusAudio, VoiceClient, Message
-from discord.errors import ClientException
+from discord import Member, VoiceState, VoiceChannel, Message, Attachment
 from discord.ext.commands import Bot, Context, when_mentioned_or
 
-from discordjingles.configuration import config
-from discordjingles.voice_state_diff import get_voice_state_change, VoiceStateAction
-from discordjingles.guild_settings import GuildSettingsManager, JingleMode
-from discordjingles.jingles import JingleManager
+from jinglebot.jingles import Jingle, generate_jingle_meta, JINGLES_DIR
+from jinglebot.player import play_jingle, get_proper_jingle
+from jinglebot.utilities import truncate_string
+from jinglebot.configuration import config
+from jinglebot.voice_state_diff import get_voice_state_change, VoiceStateAction
+from jinglebot.guild_settings import GuildSettingsManager, JingleMode
+from jinglebot.jingles import JingleManager
 
 log = logging.getLogger(__name__)
 
@@ -202,6 +200,82 @@ async def cmd_play(ctx: Context, jingle_mode_option: Optional[str] = None):
         await ctx.message.add_reaction("☑️")
     else:
         await ctx.message.add_reaction("❌")
+
+
+@bot.command(name="listjingles", help="Show available jingles.")
+async def cmd_list_jingles(ctx: Context):
+    listed_jingles = list(jingle_manager.jingles_by_id.values())
+    jingles_listed = "\n".join([
+        f"[{index + 1}]({jingle.path.name}) {jingle.title}" for index, jingle in enumerate(listed_jingles)
+    ])
+
+    await ctx.send(
+        f":musical_score: **Available jingles:**\n"
+        f"```md\n{jingles_listed}```\n"
+    )
+
+
+@bot.command(name="reloadjingles", help="Reload available jingles.")
+async def cmd_reload_jingles(ctx: Context):
+    jingle_manager.reload_available_jingles()
+    await ctx.send(f":ballot_box_with_check: Jingles reloaded, **{len(jingle_manager.jingles_by_id)}** available.")
+
+
+@bot.command(name="addjingle", help="Interactively add a new jingle.")
+async def cmd_add_jingle(ctx: Context):
+    # Request a title from the user
+    await ctx.send(
+        ":scroll: You're about to add a new jingle. "
+        "What title would you like to give it (max. 65 characters)?"
+    )
+
+    try:
+        def ensure_author(m: Message):
+            return m.author.id == ctx.author.id
+
+        user_title_message: Message = await bot.wait_for("message", check=ensure_author, timeout=120)
+    except asyncio.TimeoutError:
+        await ctx.send(":alarm_clock: Timed out (2 minutes), try again.")
+        return
+
+    jingle_title = truncate_string(str(user_title_message.content).strip(), 65)
+
+    # Request an upload from the user
+    await ctx.send(
+        f":file_folder: Cool, the title will be `{jingle_title}`!\n"
+        f"Please upload an `.mp3` file to add a new jingle with your title. Upload size limit: `1 MB`"
+    )
+
+    try:
+        def ensure_upload(m: Message):
+            return m.author.id == ctx.author.id \
+                   and len(m.attachments) == 1 \
+                   and m.attachments[0].filename.endswith(".mp3")
+
+        user_upload_message: Message = await bot.wait_for("message", check=ensure_upload, timeout=240)
+    except asyncio.TimeoutError:
+        await ctx.send(":alarm_clock: Timed out (4 minutes), try again.")
+        return
+
+    attachment: Attachment = user_upload_message.attachments[0]
+    if attachment.size >= (1024 * 1024):
+        await ctx.send(":x: File is too big.")
+        return
+
+    # Download the file into "jingles"
+    output_jingle_path = JINGLES_DIR / attachment.filename
+    if output_jingle_path.exists():
+        await ctx.send(":warning: A file with this name already exists, please rename and try again.")
+        return
+
+    response = await ctx.send(":yarn: Saving...")
+    await attachment.save(str(output_jingle_path.absolute()))
+    generate_jingle_meta(output_jingle_path, jingle_title)
+
+    jingle_manager.reload_available_jingles()
+    await response.edit(
+        content=f":yarn: Jingle saved, `{len(jingle_manager.jingles_by_id)}` jingles now available."
+    )
 
 
 @bot.event

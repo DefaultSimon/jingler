@@ -5,9 +5,9 @@ from typing import Optional
 
 from discord import VoiceChannel, VoiceClient, ClientException, FFmpegOpusAudio, Guild
 
-from discordjingles.guild_settings import JingleMode
-from discordjingles.jingles import Jingle, JingleManager
-from discordjingles.guild_settings import GuildSettingsManager
+from jinglebot.guild_settings import JingleMode
+from jinglebot.jingles import Jingle, JingleManager
+from jinglebot.guild_settings import GuildSettingsManager
 
 log = logging.getLogger(__name__)
 

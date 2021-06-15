@@ -1,14 +1,39 @@
 import pathlib
 import logging
 from typing import Dict
-from json import load
+from json import load, dump
 
-from discordjingles.utilities import Singleton
+from mutagen import File
+
+from jinglebot.utilities import Singleton, generate_id
 
 log = logging.getLogger(__name__)
 
-JINGLES_DIR = pathlib.Path(__file__, "..", "..", "jingles").absolute()
+JINGLES_DIR = pathlib.Path(__file__, "..", "..", "jingles").resolve()
 log.info(f"Jingles directory: {JINGLES_DIR}")
+
+
+def generate_jingle_meta(jingle_file: pathlib.Path, jingle_title: str):
+    """
+    Generate and save jingle metadata.
+    :param jingle_file: A pathlib.Path to the jingle file.
+    :param jingle_title: Desired title for the jingle.
+    """
+    jingle_id = generate_id()
+
+    audio_file = File(str(jingle_file.absolute()))
+    jingle_length = round(audio_file.info.length, 1) + 0.2
+
+    metadata = {
+        "id": jingle_id,
+        "title": jingle_title,
+        "length": jingle_length,
+    }
+
+    jingle_meta_file = jingle_file.parent / (jingle_file.name + ".meta")
+
+    with open(str(jingle_meta_file.resolve()), "w", encoding="utf8") as jingle_meta:
+        dump(metadata, jingle_meta, indent=2, ensure_ascii=False)
 
 
 class Jingle:
@@ -26,16 +51,19 @@ class Jingle:
 class JingleManager(metaclass=Singleton):
     def __init__(self):
         self.jingles_by_id: Dict[str, Jingle] = {}
-        self.load_available_jingles()
+        self.reload_available_jingles()
 
-    def load_available_jingles(self):
+    def reload_available_jingles(self):
+        # Reset jingles
+        self.jingles_by_id = {}
+
         jingles_loaded = 0
 
         for meta_file in filter(lambda file: file.suffix == ".meta", JINGLES_DIR.iterdir()):
             # For each .meta file, make sure the corresponding jingle exists
-            jingle_file = pathlib.Path(JINGLES_DIR, meta_file.name.rstrip(".meta"))
+            jingle_file = JINGLES_DIR / meta_file.name.rstrip(".meta")
 
-            if not pathlib.Path(JINGLES_DIR, jingle_file).exists():
+            if not jingle_file.exists():
                 log.warning(f"Meta file \"{jingle_file}\" does not have a corresponding jingle file, skipping.")
                 continue
 
