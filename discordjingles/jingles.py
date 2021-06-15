@@ -3,6 +3,8 @@ import logging
 from typing import Dict
 from json import load
 
+from discordjingles.utilities import Singleton
+
 log = logging.getLogger(__name__)
 
 JINGLES_DIR = pathlib.Path(__file__, "..", "..", "jingles").absolute()
@@ -21,7 +23,7 @@ class Jingle:
         self.length = length
 
 
-class JingleManager:
+class JingleManager(metaclass=Singleton):
     def __init__(self):
         self.jingles_by_id: Dict[str, Jingle] = {}
         self.load_available_jingles()

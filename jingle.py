@@ -3,6 +3,7 @@ from typing import Optional
 from random import choice
 
 from discordjingles.jingles import Jingle
+from discordjingles.player import play_jingle, get_proper_jingle
 
 logging.basicConfig(level=logging.INFO)
 
@@ -20,8 +21,9 @@ log = logging.getLogger(__name__)
 
 is_ready_to_play = True
 
+command_prefix = "."
 bot = Bot(
-    command_prefix=when_mentioned_or(".")
+    command_prefix=when_mentioned_or(command_prefix)
 )
 guilds = GuildSettingsManager()
 jingle_manager = JingleManager()
@@ -47,7 +49,7 @@ async def cmd_getmode(ctx: Context):
             )
             await ctx.send(
                 f":space_invader: Black magic! Jingle mode is set to `single`, "
-                f"but you haven't set a default jingle yet! Please set one with `{bot.command_prefix}setdefault`."
+                f"but you haven't set a default jingle yet! Please set one with `{command_prefix}setdefault`."
             )
             return
 
@@ -69,7 +71,7 @@ async def cmd_getmode(ctx: Context):
     else:
         await ctx.send(
             ":exclamation: Something went wrong, the jingle mode is invalid. "
-            f"Please set it using `{bot.command_prefix}setmode [disabled/single/random]`"
+            f"Please set it using `{command_prefix}setmode [disabled/single/random]`"
         )
         raise ValueError(f"Invalid JingleMode: {jingle_mode}")
 
@@ -81,7 +83,7 @@ async def cmd_setmode(ctx: Context, mode_set: Optional[str] = None):
     if requested_mode is None or mode_set not in ["single", "random", "disabled"]:
         # Show help message
         await ctx.send(
-            f"Usage: `{bot.command_prefix}setmode [disabled/single/random]`\n"
+            f"Usage: `{command_prefix}setmode [disabled/single/random]`\n"
             f"Available modes: \n"
             f"\t`disabled` - do not play any jingles upon members joining a voice channel\n"
             f"\t`single` - play a specific jingle upon members joining a voice channel\n"
@@ -99,7 +101,7 @@ async def cmd_setmode(ctx: Context, mode_set: Optional[str] = None):
         # Reject until the default jingle is set
         if guilds.get_guild_default_jingle(ctx.guild) is None:
             await ctx.send(f":warning: Please set a default jingle first"
-                           f" using the `{bot.command_prefix}setdefault` command.")
+                           f" using the `{command_prefix}setdefault` command.")
             return
 
     guilds.update_guild_jingle_mode(ctx.guild, mode_enum)
@@ -125,10 +127,10 @@ async def cmd_setdefault(ctx: Context):
 
     if default_jingle is None:
         await ctx.send(f":information_source: No default jingle is currently set. "
-                       f"You can set one using `{bot.command_prefix}setdefault`.")
+                       f"You can set one using `{command_prefix}setdefault`.")
     else:
         await ctx.send(f":information_source: The default jingle is currently set to "
-                       f"**{default_jingle.title}** (`{default_jingle.path.name}`)")
+                       f"`{default_jingle.title} ({default_jingle.path.name})`")
 
 
 @bot.command(name="setdefault", help="Sets the default jingle for this server.")
@@ -165,7 +167,41 @@ async def cmd_setdefault(ctx: Context):
     chosen_jingle: Jingle = listed_jingles[chosen_index]
     guilds.update_guild_single_jingle(ctx.guild, chosen_jingle)
 
-    await ctx.send(f":ballot_box_with_check: Default jingle set to **{chosen_jingle.title}**.")
+    await ctx.send(
+        f":ballot_box_with_check: Default jingle "
+        f"set to `{chosen_jingle.title} ({chosen_jingle.path.name})`."
+   )
+
+
+@bot.command(name="play", help="Manually play a jingle.", usage="[[random]/default]")
+async def cmd_play(ctx: Context, jingle_mode_option: Optional[str] = None):
+    # Find member's voice channel
+    voice_state: Optional[VoiceState] = ctx.author.voice
+    if not voice_state:
+        await ctx.send(":warning: You're currently not in a voice channel.")
+        return
+
+    voice_channel: Optional[VoiceChannel] = voice_state.channel
+    if not voice_channel:
+        await ctx.send(":warning: You're currently not in a voice channel.")
+        return
+
+    jingle_mode_option = jingle_mode_option.strip().lower() if jingle_mode_option else None
+    jingle_mode = {
+        "default": JingleMode.SINGLE,
+        "random": JingleMode.RANDOM,
+    }.get(jingle_mode_option, "default")
+    if not jingle_mode:
+        await ctx.send(":warning: Invalid jingle mode, available modes: `random` and `default` jingle.")
+        return
+
+    jingle = await get_proper_jingle(ctx.guild, jingle_mode)
+
+    did_play = await play_jingle(voice_channel, jingle)
+    if did_play:
+        await ctx.message.add_reaction("☑️")
+    else:
+        await ctx.message.add_reaction("❌")
 
 
 @bot.event
@@ -177,18 +213,15 @@ async def on_ready():
 async def on_voice_state_update(member: Member, state_before: VoiceState, state_after: VoiceState):
     if member.id == bot.user.id:
         return
-
     log.info(f"on_voice_state_update for {member.display_name}")
 
     guild_jingle_mode = guilds.get_guild_jingle_mode(member.guild)
-    guild_jingle_default = guilds.get_guild_default_jingle(member.guild)
+    if guild_jingle_mode == JingleMode.DISABLED:
+        return
 
     # Make sure we only trigger this on whitelisted servers
     guild_id = member.guild.id
     if guild_id not in config.ENABLED_SERVERS:
-        return
-
-    if guild_jingle_mode == JingleMode.DISABLED:
         return
 
     # Make sure we only trigger this on voice channel joins
@@ -198,33 +231,11 @@ async def on_voice_state_update(member: Member, state_before: VoiceState, state_
 
     target_voice_channel: VoiceChannel = state_after.channel
 
-    try:
-        # noinspection PyTypeChecker
-        connection: VoiceClient = await target_voice_channel.connect(cls=VoiceClient)
-    except ClientException as e:
-        log.warning(f"Error while trying to connect: {e}")
+    jingle = await get_proper_jingle(member.guild)
+    if jingle is None:
         return
 
-
-    try:
-        if guild_jingle_mode == JingleMode.SINGLE:
-            jingle = guild_jingle_default
-        else:
-            jingle = choice(list(jingle_manager.jingles_by_id.values()))
-
-        audio = FFmpegOpusAudio(source=str(jingle.path.absolute()))
-
-        # Delay playback very slightly
-        await asyncio.sleep(0.2)
-
-        # Todo add a way to better detect when the playback has stopped (after can't be a coroutine)
-        connection.play(audio)
-
-        await asyncio.sleep(jingle.length)
-        await connection.disconnect(force=False)
-    finally:
-        if connection.is_connected():
-            await connection.disconnect(force=True)
+    await play_jingle(target_voice_channel, jingle)
 
 
 bot.run(config.BOT_TOKEN)

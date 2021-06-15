@@ -4,6 +4,7 @@ from typing import Dict, Optional
 from discord import Guild
 
 from discordjingles.jingles import Jingle
+from discordjingles.utilities import Singleton
 
 
 class JingleMode(Enum):
@@ -19,7 +20,7 @@ class GuildSettings:
         self.jingle_default: Optional[Jingle] = None
 
 
-class GuildSettingsManager:
+class GuildSettingsManager(metaclass=Singleton):
     def __init__(self):
         self.settings_by_guild_id: Dict[int, GuildSettings] = {}
         # TODO add persistence
