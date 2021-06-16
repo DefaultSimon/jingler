@@ -59,6 +59,7 @@ async def play_jingle(channel: VoiceChannel, jingle: Jingle, fail_silently: bool
         await asyncio.sleep(0.2)
 
         # Todo add a way to better detect when the playback has stopped (after can't be a coroutine)
+        log.info(f"Playing jingle \"{jingle.path.name}\" in \"{channel.name}\"")
         connection.play(audio)
 
         await asyncio.sleep(jingle.length)

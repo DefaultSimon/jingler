@@ -47,7 +47,7 @@ class TOMLConfig:
 
 class DiscordJingleConfig:
     __slots__ = (
-        "BOT_TOKEN", "ENABLED_SERVERS",
+        "BOT_TOKEN", "ENABLED_SERVERS", "PREFIX",
     )
 
     def __init__(self, toml_config: TOMLConfig):
@@ -56,6 +56,9 @@ class DiscordJingleConfig:
 
         _jingle_table = toml_config.get_table("Jingles")
         self.ENABLED_SERVERS: List[int] = _jingle_table.get("enabled_servers")
+
+        _misc_table = toml_config.get_table("Misc")
+        self.PREFIX: str = _misc_table.get("prefix")
 
 
     @classmethod
