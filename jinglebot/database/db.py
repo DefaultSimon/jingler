@@ -212,7 +212,7 @@ class Database(metaclass=Singleton):
         self._ensure_user(user_id)
         return self._get_user_field(user_id, "theme_song_jingle_id")
 
-    def user_set_theme_song_jingle_id(self, user_id: int, jingle_id: str):
+    def user_set_theme_song_jingle_id(self, user_id: int, jingle_id: Optional[str]):
         """
         Set the user's theme song jingle ID.
         :param user_id: User ID to set the theme song for.

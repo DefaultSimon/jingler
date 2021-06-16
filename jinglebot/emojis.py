@@ -17,6 +17,7 @@ class Emoji:
     HEADPHONES = ":headphones:"
     SPACE_INVADER = ":space_invader:"
     MUSICAL_NOTE = ":musical_note:"
+    POSTAL_HORN = ":postal_horn:"
 
 
 class UnicodeEmoji:

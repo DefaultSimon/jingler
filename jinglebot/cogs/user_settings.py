@@ -31,22 +31,30 @@ class UserSettingsCog(Cog, name="UserSettings"):
             )
         else:
             await ctx.send(
-                f"{Emoji.MAILBOX_WITH_MAIL} Your current theme song "
+                f"{Emoji.POSTAL_HORN} Your current theme song "
                 f"is `{theme_song.title} ({theme_song.path.name})`."
             )
 
-    @command(name="setthemesong", help="Set your theme song (jingle).", usage="(jingle code)")
+    @command(
+        name="setthemesong",
+        help="Set your theme song (jingle). Use with \"none\" to disable.",
+        usage="(jingle code/\"none\" to disable)"
+    )
     async def cmd_set_theme_song(self, ctx: Context, prefilled_jingle_code: Optional[str] = None):
         if prefilled_jingle_code is not None:
             # User already supplied the new theme song, check if valid
-            new_theme_song_id: str = sanitize_jingle_code(prefilled_jingle_code)
+            prefilled_jingle_code = str(prefilled_jingle_code).strip()
 
-            if new_theme_song_id not in jingle_manager.jingles_by_id or len(new_theme_song_id) != 5:
-                await ctx.send(f"{Emoji.WARNING} Invalid jingle code.")
-                return
+            if prefilled_jingle_code in ["disable", "disabled", "none"]:
+                new_theme_song_id: Optional[str] = None
+            else:
+                new_theme_song_id: Optional[str] = sanitize_jingle_code(prefilled_jingle_code)
+                if new_theme_song_id not in jingle_manager.jingles_by_id or len(new_theme_song_id) != 5:
+                    await ctx.send(f"{Emoji.WARNING} Invalid jingle code.")
+                    return
 
         else:
-            # Do this interactively
+            # Select a jingle interactively
             pagination = Pagination(
                 channel=ctx.channel,
                 client=self._bot,
@@ -73,22 +81,33 @@ class UserSettingsCog(Cog, name="UserSettings"):
                 await ctx.send(f"{Emoji.ALARM_CLOCK} Timed out (`2 minutes`), try again.")
                 return
 
-            new_theme_song_id: str = sanitize_jingle_code(response.content)
+            new_theme_song_id = str(response.content).strip()
 
-            if new_theme_song_id not in jingle_manager.jingles_by_id or len(new_theme_song_id) != 5:
-                await ctx.send(f"{Emoji.WARNING} Invalid jingle code.")
-                return
+            if new_theme_song_id in ["disable", "disabled", "none"]:
+                new_theme_song_id: Optional[str] = None
+            else:
+                new_theme_song_id: Optional[str] = sanitize_jingle_code(response.content)
+                if new_theme_song_id not in jingle_manager.jingles_by_id or len(new_theme_song_id) != 5:
+                    await ctx.send(f"{Emoji.WARNING} Invalid jingle code.")
+                    return
 
             await pagination.stop_pagination()
 
-        # Update the setting
-        new_theme_song: Optional[Jingle] = jingle_manager.get_jingle_by_id(new_theme_song_id)
-        if not new_theme_song:
-            await ctx.send(f"{Emoji.WARNING} Something went wrong: the jingle was picked but does not exist.")
-            return
+        if new_theme_song_id is None:
+            # Disable the theme song
+            db.user_set_theme_song_jingle_id(ctx.author.id, None)
+            await ctx.send(
+                f"{Emoji.POSTAL_HORN} "
+            )
+        else:
+            # Update the theme song
+            new_theme_song: Optional[Jingle] = jingle_manager.get_jingle_by_id(new_theme_song_id)
+            if not new_theme_song:
+                await ctx.send(f"{Emoji.WARNING} Something went wrong: the jingle was picked but does not exist.")
+                return
 
-        db.user_set_theme_song_jingle_id(ctx.author.id, new_theme_song_id)
-        await ctx.send(
-            f"{Emoji.BALLOT_BOX_WITH_CHECK} Your new theme song is "
-            f"`{new_theme_song.title} ({new_theme_song.path.name})`."
-        )
+            db.user_set_theme_song_jingle_id(ctx.author.id, new_theme_song_id)
+            await ctx.send(
+                f"{Emoji.POSTAL_HORN} Your new theme song is "
+                f"`{new_theme_song.title} ({new_theme_song.path.name})`."
+            )
