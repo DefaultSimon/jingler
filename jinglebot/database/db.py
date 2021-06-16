@@ -4,7 +4,7 @@ from sqlite3 import Connection, connect, Cursor
 from typing import Dict, Optional, Any
 
 from jinglebot.configuration import DATA_DIR
-from jinglebot.guild_settings import JingleMode
+from jinglebot.jingles import JingleMode
 from jinglebot.utilities import get_nth_with_default, Singleton
 
 log = logging.getLogger(__name__)

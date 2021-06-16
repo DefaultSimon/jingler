@@ -8,10 +8,9 @@ from discord.ext.commands import Cog, Bot, command, Context
 from jinglebot.configuration import config
 from jinglebot.database.db import Database
 from jinglebot.emojis import UnicodeEmoji, Emoji
-from jinglebot.guild_settings import JingleMode
-from jinglebot.jingles import JingleManager, JINGLES_DIR, save_jingle_meta, get_audio_file_length
+from jinglebot.jingles import JingleManager, JINGLES_DIR, save_jingle_meta, get_audio_file_length, JingleMode
 from jinglebot.pagination import Pagination, is_reaction_author
-from jinglebot.player import get_proper_jingle, play_jingle
+from jinglebot.player import get_guild_jingle, play_jingle
 from jinglebot.utilities import truncate_string, generate_jingle_id
 from jinglebot.voice_state_diff import get_voice_state_change, VoiceStateAction
 
@@ -50,7 +49,7 @@ class JinglePlayerCog(Cog, name="Jingles"):
             await ctx.send(f"{Emoji.WARNING} Invalid jingle mode, available modes: `random` and `default` jingle.")
             return
 
-        jingle = await get_proper_jingle(ctx.guild, jingle_mode)
+        jingle = await get_guild_jingle(ctx.guild, jingle_mode)
 
         did_play = await play_jingle(voice_channel, jingle)
         if did_play:

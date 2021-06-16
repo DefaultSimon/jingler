@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import AbstractEventLoop, get_event_loop, Task
-from typing import List, Callable, Optional, Union, Tuple, Iterable, Awaitable
+from typing import List, Callable, Optional, Union, Tuple, Iterable
 
 from discord import TextChannel, Message, Client, Reaction, User, Member
 

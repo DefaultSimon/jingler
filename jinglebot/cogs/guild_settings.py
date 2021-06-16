@@ -8,8 +8,7 @@ from discord.ext.commands import Cog, Bot, command, Context
 from jinglebot.configuration import config
 from jinglebot.database.db import Database
 from jinglebot.emojis import Emoji
-from jinglebot.guild_settings import JingleMode
-from jinglebot.jingles import JingleManager, Jingle, format_jingles_for_pagination
+from jinglebot.jingles import JingleManager, Jingle, format_jingles_for_pagination, JingleMode
 from jinglebot.pagination import is_reaction_author, Pagination
 from jinglebot.utilities import sanitize_jingle_code
 

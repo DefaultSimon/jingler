@@ -6,8 +6,7 @@ from typing import Optional
 from discord import VoiceChannel, VoiceClient, ClientException, FFmpegOpusAudio, Guild
 
 from jinglebot.database.db import Database
-from jinglebot.guild_settings import JingleMode
-from jinglebot.jingles import Jingle, JingleManager
+from jinglebot.jingles import Jingle, JingleManager, JingleMode
 
 log = logging.getLogger(__name__)
 
@@ -15,7 +14,7 @@ jingle_manager = JingleManager()
 database = Database()
 
 
-async def get_proper_jingle(guild: Guild, override_mode: Optional[JingleMode] = None) -> Optional[Jingle]:
+async def get_guild_jingle(guild: Guild, override_mode: Optional[JingleMode] = None) -> Optional[Jingle]:
     """
     Return the guild jingle depending on current mode.
 

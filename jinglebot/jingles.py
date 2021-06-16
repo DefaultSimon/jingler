@@ -3,6 +3,7 @@ import logging
 from typing import Dict, Optional, List
 from json import load, dump
 
+from discord import Enum
 from mutagen import File
 
 from jinglebot.utilities import Singleton
@@ -11,6 +12,12 @@ log = logging.getLogger(__name__)
 
 JINGLES_DIR = pathlib.Path(__file__, "..", "..", "jingles").resolve()
 log.info(f"Jingles directory: {JINGLES_DIR}")
+
+
+class JingleMode(Enum):
+    DISABLED = "disabled"
+    SINGLE = "single"
+    RANDOM = "random"
 
 
 def format_jingles_for_pagination(jingle_manager: "JingleManager") -> List[str]:
