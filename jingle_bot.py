@@ -1,4 +1,7 @@
 import logging
+
+from jinglebot.database.db import Database
+
 logging.basicConfig(level=logging.INFO)
 
 from typing import Optional
@@ -23,7 +26,7 @@ command_prefix = "."
 bot = Bot(
     command_prefix=when_mentioned_or(command_prefix)
 )
-guilds = GuildSettingsManager()
+database = Database()
 jingle_manager = JingleManager()
 
 
@@ -34,10 +37,11 @@ async def cmd_ping(ctx: Context):
 
 @bot.command(name="getmode", help="Displays the current jingle mode.")
 async def cmd_getmode(ctx: Context):
-    jingle_mode: JingleMode = guilds.get_guild_jingle_mode(ctx.guild)
+    jingle_mode: JingleMode = database.guild_get_jingle_mode(ctx.guild.id)
 
     if jingle_mode == JingleMode.SINGLE:
-        default_jingle: Jingle = guilds.get_guild_default_jingle(ctx.guild)
+        default_jingle_id: Optional[str] = database.guild_get_default_jingle_id(ctx.guild.id)
+        default_jingle: Jingle = jingle_manager.get_jingle_by_id(default_jingle_id)
 
         # Warn the user if somehow the default jingle is unset
         if default_jingle is None:
@@ -97,16 +101,17 @@ async def cmd_setmode(ctx: Context, mode_set: Optional[str] = None):
 
     if mode_enum == JingleMode.SINGLE:
         # Reject until the default jingle is set
-        if guilds.get_guild_default_jingle(ctx.guild) is None:
+        if database.guild_get_default_jingle_id(ctx.guild.id) is None:
             await ctx.send(f":warning: Please set a default jingle first"
                            f" using the `{command_prefix}setdefault` command.")
             return
 
-    guilds.update_guild_jingle_mode(ctx.guild, mode_enum)
+    database.guild_set_jingle_mode(ctx.guild.id, mode_enum)
     if mode_enum == JingleMode.DISABLED:
         await ctx.send(":checkered_flag: Guild jingle mode has been set to `disabled` - no jingles will be played.")
     elif mode_enum == JingleMode.SINGLE:
-        default_jingle: Jingle = guilds.get_guild_default_jingle(ctx.guild)
+        default_jingle_id: Optional[str] = database.guild_get_default_jingle_id(ctx.guild.id)
+        default_jingle: Jingle = jingle_manager.get_jingle_by_id(default_jingle_id)
         await ctx.send(
             f":checkered_flag: Guild jingle mode has been set to `single` "
             f"- jingle `{default_jingle.title} ({default_jingle.path.name})` "
@@ -121,7 +126,8 @@ async def cmd_setmode(ctx: Context, mode_set: Optional[str] = None):
 
 @bot.command(name="getdefault", help="Displays the default jingle's information.")
 async def cmd_setdefault(ctx: Context):
-    default_jingle: Optional[Jingle] = guilds.get_guild_default_jingle(ctx.guild)
+    default_jingle_id: Optional[str] = database.guild_get_default_jingle_id(ctx.guild.id)
+    default_jingle: Jingle = jingle_manager.get_jingle_by_id(default_jingle_id)
 
     if default_jingle is None:
         await ctx.send(f":information_source: No default jingle is currently set. "
@@ -163,7 +169,7 @@ async def cmd_setdefault(ctx: Context):
         return
 
     chosen_jingle: Jingle = listed_jingles[chosen_index]
-    guilds.update_guild_single_jingle(ctx.guild, chosen_jingle)
+    database.guild_set_default_jingle_id(ctx.guild.id, chosen_jingle.id)
 
     await ctx.send(
         f":ballot_box_with_check: Default jingle "
@@ -289,7 +295,7 @@ async def on_voice_state_update(member: Member, state_before: VoiceState, state_
         return
     log.info(f"on_voice_state_update for {member.display_name}")
 
-    guild_jingle_mode = guilds.get_guild_jingle_mode(member.guild)
+    guild_jingle_mode: JingleMode = database.guild_get_jingle_mode(member.guild.id)
     if guild_jingle_mode == JingleMode.DISABLED:
         return
 

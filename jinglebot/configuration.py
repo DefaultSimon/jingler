@@ -3,7 +3,7 @@ from typing import Any, List
 
 from toml import load
 
-DATA_DIR = pathlib.Path("data")
+DATA_DIR = pathlib.Path(__file__, "..", "..", "data")
 CONFIGURATION_FILENAME = pathlib.Path("configuration.toml")
 
 CONFIGURATION_FILE = DATA_DIR / CONFIGURATION_FILENAME

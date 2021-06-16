@@ -5,14 +5,14 @@ from typing import Optional
 
 from discord import VoiceChannel, VoiceClient, ClientException, FFmpegOpusAudio, Guild
 
+from jinglebot.database.db import Database
 from jinglebot.guild_settings import JingleMode
 from jinglebot.jingles import Jingle, JingleManager
-from jinglebot.guild_settings import GuildSettingsManager
 
 log = logging.getLogger(__name__)
 
 jingle_manager = JingleManager()
-guild_manager = GuildSettingsManager()
+database = Database()
 
 
 async def get_proper_jingle(guild: Guild, override_mode: Optional[JingleMode] = None) -> Optional[Jingle]:
@@ -26,11 +26,12 @@ async def get_proper_jingle(guild: Guild, override_mode: Optional[JingleMode] = 
         If set to `single`, return the default jingle.
         If set to `random`, return a random jingle.
     """
-    guild_jingle_mode = guild_manager.get_guild_jingle_mode(guild)
-    guild_jingle_default = guild_manager.get_guild_default_jingle(guild)
+    guild_jingle_mode: JingleMode = database.guild_get_jingle_mode(guild.id)
+    guild_default_jingle_id: Optional[str] = database.guild_get_default_jingle_id(guild.id)
+    guild_default_jingle: Optional[Jingle] = jingle_manager.get_jingle_by_id(guild_default_jingle_id)
 
     if guild_jingle_mode == JingleMode.SINGLE or override_mode == JingleMode.SINGLE:
-        return guild_jingle_default
+        return guild_default_jingle
     elif guild_jingle_mode == JingleMode.RANDOM or override_mode == JingleMode.RANDOM:
         return choice(list(jingle_manager.jingles_by_id.values()))
     elif guild_jingle_mode == JingleMode.DISABLED or override_mode == JingleMode.DISABLED:

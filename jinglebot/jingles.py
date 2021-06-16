@@ -1,6 +1,6 @@
 import pathlib
 import logging
-from typing import Dict
+from typing import Dict, Optional
 from json import load, dump
 
 from mutagen import File
@@ -89,3 +89,11 @@ class JingleManager(metaclass=Singleton):
             jingles_loaded += 1
 
         log.info(f"Loaded {jingles_loaded} jingles.")
+
+    def get_jingle_by_id(self, jingle_id: str) -> Optional[Jingle]:
+        """
+        Return the Jingle by ID, if it exists.
+        :param jingle_id: Jingle ID to find.
+        :return: Jingle or None if not found.
+        """
+        return self.jingles_by_id.get(jingle_id)
