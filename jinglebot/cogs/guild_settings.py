@@ -7,8 +7,11 @@ from discord.ext.commands import Cog, Bot, command, Context
 
 from jinglebot.configuration import config
 from jinglebot.database.db import Database
+from jinglebot.emojis import Emoji
 from jinglebot.guild_settings import JingleMode
-from jinglebot.jingles import JingleManager, Jingle
+from jinglebot.jingles import JingleManager, Jingle, format_jingles_for_pagination
+from jinglebot.pagination import is_reaction_author, Pagination
+from jinglebot.utilities import sanitize_jingle_code
 
 log = logging.getLogger(__name__)
 
@@ -108,7 +111,7 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
             )
 
     @command(name="getdefault", help="Displays the default jingle's information.")
-    async def cmd_setdefault(self, ctx: Context):
+    async def cmd_getdefault(self, ctx: Context):
         default_jingle_id: Optional[str] = database.guild_get_default_jingle_id(ctx.guild.id)
         default_jingle: Jingle = jingle_manager.get_jingle_by_id(default_jingle_id)
 
@@ -119,41 +122,60 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
             await ctx.send(f":information_source: The default jingle is currently set to "
                            f"`{default_jingle.title} ({default_jingle.path.name})`")
 
-    @command(name="setdefault", help="Sets the default jingle for this server.")
-    async def cmd_setdefault(self, ctx: Context):
-        # List available jingles and allow the user to pick
-        listed_jingles = list(jingle_manager.jingles_by_id.values())
-        jingles_listed = "\n".join([
-            f"[{index + 1}]({jingle.path.name}) {jingle.title}" for index, jingle in enumerate(listed_jingles)
-        ])
+    @command(name="setdefault", help="Sets the default jingle for this server.", usage="(jingle code, optional)")
+    async def cmd_setdefault(self, ctx: Context, prefilled_jingle_id: Optional[str] = None):
+        if prefilled_jingle_id is not None:
+            # User already supplied the new default, check if the code is valid and update
 
-        await ctx.send(
-            f":musical_score: **Available jingles:**\n"
-            f"```md\n{jingles_listed}```\n"
-            f"Pick a jingle to set as the default on this server.\n"
-            f"If the \"single\" jingle mode is activated, this jingle will be played instead of a random jingle."
-        )
+            prefilled_jingle_id = sanitize_jingle_code(prefilled_jingle_id)
+            if prefilled_jingle_id not in jingle_manager.jingles_by_id:
+                await ctx.send(f"{Emoji.WARNING} Invalid jingle code.")
+                return
 
-        try:
-            def verify_response(message: Message):
-                return message.author.id == ctx.author.id \
-                       and message.channel.id == ctx.channel.id \
-                       and str(message.content).isdigit()
+            new_default_jingle_id: str = prefilled_jingle_id
+        else:
+            # User did not yet choose a jingle, do this interactively
+            # List available jingles and allow the user to pick
+            pagination = Pagination(
+                channel=ctx.channel,
+                client=self._bot,
+                beginning_content=f"{Emoji.DIVIDERS} Available jingles:",
+                item_list=format_jingles_for_pagination(jingle_manager),
+                item_max_per_page=10,
+                end_content=f"\nPick a jingle to set as the default on this server and reply with its code. "
+                            f"If the \"single\" mode is activated, this jingle will "
+                            f"be played each time instead of a random jingle.",
+                code_block_begin="```md\n",
+                paginate_action_check=is_reaction_author(ctx.author.id),
+                timeout=120,
+                begin_pagination_immediately=True,
+            )
 
-            response: Message = await self._bot.wait_for("message", check=verify_response, timeout=120)
-        except asyncio.TimeoutError:
-            await ctx.send(":alarm_clock: Timed out (2 minutes), try again.")
+            try:
+                def verify_response(message: Message):
+                    return message.author.id == ctx.author.id \
+                           and message.channel.id == ctx.channel.id \
+                           and len(sanitize_jingle_code(message.content)) == 5
+
+                response: Message = await self._bot.wait_for("message", check=verify_response, timeout=120)
+            except asyncio.TimeoutError:
+                await ctx.send(":alarm_clock: Timed out (`2 minutes`), try again.")
+                return
+
+            new_default_jingle_id: str = sanitize_jingle_code(response.content)
+            if new_default_jingle_id not in jingle_manager.jingles_by_id or len(new_default_jingle_id) != 5:
+                await ctx.send(f"{Emoji.WARNING} Invalid jingle code.")
+                return
+
+            await pagination.stop_pagination()
+
+        new_default_jingle: Optional[Jingle] = jingle_manager.get_jingle_by_id(new_default_jingle_id)
+        if not new_default_jingle:
+            await ctx.send(f"{Emoji.WARNING} Something went wrong: the jingle was picked but does not exist.")
             return
 
-        chosen_index = int(response.content) - 1
-        if chosen_index < 0 or chosen_index >= len(listed_jingles):
-            await ctx.send(":warning: Invalid number, try again.")
-            return
-
-        chosen_jingle: Jingle = listed_jingles[chosen_index]
-        database.guild_set_default_jingle_id(ctx.guild.id, chosen_jingle.id)
-
+        database.guild_set_default_jingle_id(ctx.guild.id, new_default_jingle_id)
         await ctx.send(
-            f":ballot_box_with_check: Default jingle "
-            f"set to `{chosen_jingle.title} ({chosen_jingle.path.name})`."
+            f"{Emoji.BALLOT_BOX_WITH_CHECK} Default jingle "
+            f"set to `{new_default_jingle.title} ({new_default_jingle.path.name})`."
         )

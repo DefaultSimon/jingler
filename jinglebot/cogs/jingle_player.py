@@ -7,16 +7,21 @@ from discord.ext.commands import Cog, Bot, command, Context
 
 from jinglebot.configuration import config
 from jinglebot.database.db import Database
+from jinglebot.emojis import UnicodeEmoji, Emoji
 from jinglebot.guild_settings import JingleMode
-from jinglebot.jingles import JingleManager, JINGLES_DIR, generate_jingle_meta
+from jinglebot.jingles import JingleManager, JINGLES_DIR, save_jingle_meta, get_audio_file_length
+from jinglebot.pagination import Pagination, is_reaction_author
 from jinglebot.player import get_proper_jingle, play_jingle
-from jinglebot.utilities import truncate_string
+from jinglebot.utilities import truncate_string, generate_jingle_id
 from jinglebot.voice_state_diff import get_voice_state_change, VoiceStateAction
 
 log = logging.getLogger(__name__)
 
 database = Database()
 jingle_manager = JingleManager()
+
+MAX_JINGLE_FILE_SIZE_MB = 1
+MAX_JINGLE_LENGTH_SEC = 10
 
 
 class JinglePlayerCog(Cog, name="Jingles"):
@@ -28,12 +33,12 @@ class JinglePlayerCog(Cog, name="Jingles"):
         # Find member's voice channel
         voice_state: Optional[VoiceState] = ctx.author.voice
         if not voice_state:
-            await ctx.send(":warning: You're currently not in a voice channel.")
+            await ctx.send(f"{Emoji.WARNING} You're currently not in a voice channel.")
             return
 
         voice_channel: Optional[VoiceChannel] = voice_state.channel
         if not voice_channel:
-            await ctx.send(":warning: You're currently not in a voice channel.")
+            await ctx.send(f"{Emoji.WARNING} You're currently not in a voice channel.")
             return
 
         jingle_mode_option = jingle_mode_option.strip().lower() if jingle_mode_option else None
@@ -42,39 +47,46 @@ class JinglePlayerCog(Cog, name="Jingles"):
             "random": JingleMode.RANDOM,
         }.get(jingle_mode_option, "default")
         if not jingle_mode:
-            await ctx.send(":warning: Invalid jingle mode, available modes: `random` and `default` jingle.")
+            await ctx.send(f"{Emoji.WARNING} Invalid jingle mode, available modes: `random` and `default` jingle.")
             return
 
         jingle = await get_proper_jingle(ctx.guild, jingle_mode)
 
         did_play = await play_jingle(voice_channel, jingle)
         if did_play:
-            await ctx.message.add_reaction("☑️")
+            await ctx.message.add_reaction(UnicodeEmoji.BALLOT_BOX_WITH_CHECK)
         else:
-            await ctx.message.add_reaction("❌")
+            await ctx.message.add_reaction(UnicodeEmoji.X)
 
     @command(name="listjingles", help="Show available jingles.")
     async def cmd_list_jingles(self, ctx: Context):
         listed_jingles = list(jingle_manager.jingles_by_id.values())
-        jingles_listed = "\n".join([
-            f"[{index + 1}]({jingle.path.name}) {jingle.title}" for index, jingle in enumerate(listed_jingles)
-        ])
+        formatted_jingle_list = [
+            f"[{jingle.id}]({jingle.path.name}) {jingle.title}" for index, jingle in enumerate(listed_jingles)
+        ]
 
-        await ctx.send(
-            f":musical_score: **Available jingles:**\n"
-            f"```md\n{jingles_listed}```\n"
+        await Pagination(
+            channel=ctx.channel,
+            client=self._bot,
+            beginning_content=f"{Emoji.DIVIDERS} There are `{len(listed_jingles)}` available:\n",
+            item_list=formatted_jingle_list,
+            item_max_per_page=15,
+            code_block_begin="```md\n",
+            paginate_action_check=is_reaction_author(ctx.author.id),
+            timeout=120,
+            begin_pagination_immediately=True,
         )
 
     @command(name="reloadjingles", help="Reload available jingles.")
     async def cmd_reload_jingles(self, ctx: Context):
         jingle_manager.reload_available_jingles()
-        await ctx.send(f":ballot_box_with_check: Jingles reloaded, **{len(jingle_manager.jingles_by_id)}** available.")
+        await ctx.send(f"{Emoji.BALLOT_BOX_WITH_CHECK} Jingles reloaded, **{len(jingle_manager.jingles_by_id)}** available.")
 
     @command(name="addjingle", help="Interactively add a new jingle.")
     async def cmd_add_jingle(self, ctx: Context):
         # Request a title from the user
         await ctx.send(
-            ":scroll: You're about to add a new jingle. "
+            f"{Emoji.SCROLL} You're about to add a new jingle. "
             "What title would you like to give it (max. 65 characters)?"
         )
 
@@ -84,15 +96,18 @@ class JinglePlayerCog(Cog, name="Jingles"):
 
             user_title_message: Message = await self._bot.wait_for("message", check=ensure_author, timeout=120)
         except asyncio.TimeoutError:
-            await ctx.send(":alarm_clock: Timed out (2 minutes), try again.")
+            await ctx.send(f"{Emoji.ALARM_CLOCK} Timed out (2 minutes), try again.")
             return
 
         jingle_title = truncate_string(str(user_title_message.content).strip(), 65)
+        jingle_id = generate_jingle_id()
 
         # Request an upload from the user
         await ctx.send(
-            f":file_folder: Cool, the title will be `{jingle_title}`!\n"
-            f"Please upload an `.mp3` file to add a new jingle with your title. Upload size limit: `1 MB`"
+            f"{Emoji.FILE_FOLDER} Cool, the title will be `{jingle_title}`! "
+            f"Please upload an `.mp3` file to add a new jingle with your title.\n"
+            f"Make sure the file is smaller than `{MAX_JINGLE_FILE_SIZE_MB} MB` "
+            f"and shorter than `{MAX_JINGLE_LENGTH_SEC} seconds`."
         )
 
         try:
@@ -103,27 +118,42 @@ class JinglePlayerCog(Cog, name="Jingles"):
 
             user_upload_message: Message = await self._bot.wait_for("message", check=ensure_upload, timeout=240)
         except asyncio.TimeoutError:
-            await ctx.send(":alarm_clock: Timed out (4 minutes), try again.")
+            await ctx.send(f"{Emoji.ALARM_CLOCK} Timed out (4 minutes), try again.")
             return
 
         attachment: Attachment = user_upload_message.attachments[0]
-        if attachment.size >= (1024 * 1024):
-            await ctx.send(":x: File is too big.")
+
+        # Make sure the file size limit is respected
+        if attachment.size >= (1024 * 1024 * MAX_JINGLE_FILE_SIZE_MB):
+            await ctx.send(f"{Emoji.X} File is too big.")
             return
 
         # Download the file into "jingles"
         output_jingle_path = JINGLES_DIR / attachment.filename
         if output_jingle_path.exists():
-            await ctx.send(":warning: A file with this name already exists, please rename and try again.")
+            await ctx.send(f"{Emoji.WARNING} A file with this name already exists, please rename and try again.")
             return
 
-        response = await ctx.send(":yarn: Saving...")
+        response = await ctx.send(f"{Emoji.YARN} Saving...")
+
         await attachment.save(str(output_jingle_path.absolute()))
-        generate_jingle_meta(output_jingle_path, jingle_title)
+
+        # Make sure the audio file length limit is respected
+        if jingle_length := get_audio_file_length(output_jingle_path) > MAX_JINGLE_LENGTH_SEC:
+            await ctx.send(f"{Emoji.WARNING} File is too long (`{jingle_length} s`), please shorten and try again.")
+
+            # Don't forget to delete the file!
+            if output_jingle_path.exists():
+                output_jingle_path.unlink()
+            return
+
+        # If everything checks out, generate the .meta file, reload available jingles and inform the user
+        save_jingle_meta(output_jingle_path, jingle_title, jingle_id)
 
         jingle_manager.reload_available_jingles()
         await response.edit(
-            content=f":yarn: Jingle saved, `{len(jingle_manager.jingles_by_id)}` jingles now available."
+            content=f"{Emoji.YARN} Jingle saved and available with code `{jingle_id}`."
+                    f"\n`{len(jingle_manager.jingles_by_id)}` jingles now available."
         )
 
     @Cog.listener()

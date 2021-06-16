@@ -1,11 +1,11 @@
 import pathlib
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from json import load, dump
 
 from mutagen import File
 
-from jinglebot.utilities import Singleton, generate_id
+from jinglebot.utilities import Singleton
 
 log = logging.getLogger(__name__)
 
@@ -13,16 +13,40 @@ JINGLES_DIR = pathlib.Path(__file__, "..", "..", "jingles").resolve()
 log.info(f"Jingles directory: {JINGLES_DIR}")
 
 
-def generate_jingle_meta(jingle_file: pathlib.Path, jingle_title: str):
+def format_jingles_for_pagination(jingle_manager: "JingleManager") -> List[str]:
     """
-    Generate and save jingle metadata.
-    :param jingle_file: A pathlib.Path to the jingle file.
-    :param jingle_title: Desired title for the jingle.
+    Generate a list of formatted jingles.
+    Format: "[Jingle ID](Jingle filename) Jingle title"
+    :param jingle_manager: JingleManager instance to use.
+    :return: A list of formatted jingles.
     """
-    jingle_id = generate_id()
+    return [
+        f"[{jingle.id}]({jingle.path.name}) {jingle.title}"
+        for index, jingle in enumerate(jingle_manager.jingles_by_id.values())
+    ]
 
-    audio_file = File(str(jingle_file.absolute()))
-    jingle_length = round(audio_file.info.length, 1) + 0.2
+
+def get_audio_file_length(file_path: pathlib.Path) -> Optional[float]:
+    """
+    Return the audio file length
+    :param file_path: Path to the audio file.
+    :return: Length in seconds, or None if couldn't determine.
+    """
+    audio_file = File(str(file_path.absolute()))
+    if audio_file is None:
+        return None
+
+    return round(audio_file.info.length, 1)
+
+
+def save_jingle_meta(jingle_file: pathlib.Path, jingle_title: str, jingle_id: str):
+    """
+    Save jingle metadata to "<jingle_audio_filename>.meta".
+    :param jingle_file: A pathlib.Path to the jingle audio file.
+    :param jingle_title: Desired title for the jingle.
+    :param jingle_id: Jingle's new ID.
+    """
+    jingle_length = round(get_audio_file_length(jingle_file) + 0.2, 1)
 
     metadata = {
         "id": jingle_id,

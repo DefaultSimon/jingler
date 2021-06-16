@@ -219,4 +219,4 @@ class Database(metaclass=Singleton):
         :param jingle_id: Jingle ID that will become the user's theme song.
         """
         self._ensure_user(user_id)
-        self._set_user_field(user_id, "theme_song_jungle_id", jingle_id)
+        self._set_user_field(user_id, "theme_song_jingle_id", jingle_id)
