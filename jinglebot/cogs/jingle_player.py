@@ -27,7 +27,7 @@ class JinglePlayerCog(Cog, name="Jingles"):
     def __init__(self, bot: Bot):
         self._bot = bot
 
-    @command(name="play", help="Manually play a jingle.", usage="[[random]/default]")
+    @command(name="playrandom", help="Manually play a random jingle.")
     async def cmd_play(self, ctx: Context, jingle_mode_option: Optional[str] = None):
         # Find member's voice channel
         voice_state: Optional[VoiceState] = ctx.author.voice
@@ -40,17 +40,7 @@ class JinglePlayerCog(Cog, name="Jingles"):
             await ctx.send(f"{Emoji.WARNING} You're currently not in a voice channel.")
             return
 
-        jingle_mode_option = jingle_mode_option.strip().lower() if jingle_mode_option else None
-        jingle_mode = {
-            "default": JingleMode.SINGLE,
-            "random": JingleMode.RANDOM,
-        }.get(jingle_mode_option, "default")
-        if not jingle_mode:
-            await ctx.send(f"{Emoji.WARNING} Invalid jingle mode, available modes: `random` and `default` jingle.")
-            return
-
-        jingle = await get_guild_jingle(ctx.guild, jingle_mode)
-
+        jingle = await get_guild_jingle(ctx.guild, JingleMode.RANDOM)
         did_play = await play_jingle(voice_channel, jingle)
         if did_play:
             await ctx.message.add_reaction(UnicodeEmoji.BALLOT_BOX_WITH_CHECK)
@@ -159,7 +149,6 @@ class JinglePlayerCog(Cog, name="Jingles"):
     async def on_voice_state_update(self, member: Member, state_before: VoiceState, state_after: VoiceState):
         if member.id == self._bot.user.id:
             return
-        log.info(f"on_voice_state_update for {member.display_name}")
 
         guild_jingle_mode: JingleMode = database.guild_get_jingle_mode(member.guild.id)
         if guild_jingle_mode == JingleMode.DISABLED:
@@ -171,14 +160,24 @@ class JinglePlayerCog(Cog, name="Jingles"):
             return
 
         # Make sure we only trigger this on voice channel joins
-        log.info(f"Change: {get_voice_state_change(state_before, state_after).value}")
         if get_voice_state_change(state_before, state_after) != VoiceStateAction.JOINED:
             return
 
         target_voice_channel: VoiceChannel = state_after.channel
 
-        jingle = await get_proper_jingle(member.guild)
-        if jingle is None:
-            return
+        # If this user has a theme song, play that one
+        # Otherwise pick a guild jingle (random/default, depending on setting)
+        user_theme_song_id: Optional[str] = database.user_get_theme_song_jingle_id(member.id)
+        if user_theme_song_id is not None and user_theme_song_id in jingle_manager.jingles_by_id:
+            jingle = jingle_manager.get_jingle_by_id(user_theme_song_id)
+            log.info(
+                f"User \"{member.name}\" ({member.id}) has theme song: \"{jingle.title}\" ({jingle.path.name})"
+            )
+        else:
+            jingle = await get_guild_jingle(member.guild)
+            log.info(
+                f"User \"{member.name}\" ({member.id}) does not have a theme song; "
+                f"picked from guild: \"{jingle.title}\" ({jingle.path.name})"
+            )
 
         await play_jingle(target_voice_channel, jingle)

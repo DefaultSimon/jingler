@@ -97,7 +97,7 @@ class UserSettingsCog(Cog, name="UserSettings"):
             # Disable the theme song
             db.user_set_theme_song_jingle_id(ctx.author.id, None)
             await ctx.send(
-                f"{Emoji.POSTAL_HORN} "
+                f"{Emoji.POSTAL_HORN} Your theme song has been disabled."
             )
         else:
             # Update the theme song

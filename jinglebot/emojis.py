@@ -18,6 +18,9 @@ class Emoji:
     SPACE_INVADER = ":space_invader:"
     MUSICAL_NOTE = ":musical_note:"
     POSTAL_HORN = ":postal_horn:"
+    GAME_DIE = ":game_die:"
+    LEVEL_SLIDER = ":level_slider:"
+    DETECTIVE = ":detective:"
 
 
 class UnicodeEmoji:

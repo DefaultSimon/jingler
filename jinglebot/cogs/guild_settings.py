@@ -43,18 +43,18 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
                 return
 
             await ctx.send(
-                f"{Emoji.EXCLAMATION} Jingle mode is set to `single` - "
+                f"{Emoji.LEVEL_SLIDER} Jingle mode is set to `single` - "
                 f"the jingle played upon joining a voice channel will "
                 f"always be `{default_jingle.title} ({default_jingle.path.name})`"
             )
         elif jingle_mode == JingleMode.RANDOM:
             await ctx.send(
-                f"{Emoji.EXCLAMATION} Jingle mode is set to `random` - "
+                f"{Emoji.GAME_DIE} Jingle mode is set to `random` - "
                 "upon joining a voice channel a random jingle will be played."
             )
         elif jingle_mode == JingleMode.DISABLED:
             await ctx.send(
-                f"{Emoji.EXCLAMATION} Jingle mode is set to `disabled` - "
+                f"{Emoji.DETECTIVE} Jingle mode is set to `disabled` - "
                 "no jingles will be played upon members joining a voice channel."
             )
         else:
