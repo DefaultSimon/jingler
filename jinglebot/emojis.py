@@ -11,6 +11,12 @@ class Emoji:
     MAILBOX_WITH_MAIL = ":mailbox_with_mail:"
     MUSICAL_SCORE = ":musical_score:"
     DIVIDERS = ":dividers:"
+    CHECKERED_FLAG = ":checkered_flag:"
+    INFORMATION_SOURCE = ":information_source:"
+    EXCLAMATION = ":exclamation:"
+    HEADPHONES = ":headphones:"
+    SPACE_INVADER = ":space_invader:"
+    MUSICAL_NOTE = ":musical_note:"
 
 
 class UnicodeEmoji:

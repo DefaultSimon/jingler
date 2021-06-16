@@ -38,29 +38,29 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
                     f"'{ctx.guild.name}' ({ctx.guild.id}), but default jingle is unset."
                 )
                 await ctx.send(
-                    f":space_invader: Black magic! Jingle mode is set to `single`, "
+                    f"{Emoji.SPACE_INVADER} Black magic! Jingle mode is set to `single`, "
                     f"but you haven't set a default jingle yet! Please set one with `{config.PREFIX}setdefault`."
                 )
                 return
 
             await ctx.send(
-                f":headphones: Jingle mode is set to `single` - "
+                f"{Emoji.EXCLAMATION} Jingle mode is set to `single` - "
                 f"the jingle played upon joining a voice channel will "
                 f"always be `{default_jingle.title} ({default_jingle.path.name})`"
             )
         elif jingle_mode == JingleMode.RANDOM:
             await ctx.send(
-                ":headphones: Jingle mode is set to `random` - "
+                f"{Emoji.EXCLAMATION} Jingle mode is set to `random` - "
                 "upon joining a voice channel a random jingle will be played."
             )
         elif jingle_mode == JingleMode.DISABLED:
             await ctx.send(
-                ":headphones: Jingle mode is set to `disabled` - "
+                f"{Emoji.EXCLAMATION} Jingle mode is set to `disabled` - "
                 "no jingles will be played upon members joining a voice channel."
             )
         else:
             await ctx.send(
-                ":exclamation: Something went wrong, the jingle mode is invalid. "
+                f"{Emoji.EXCLAMATION} Something went wrong, the jingle mode is invalid. "
                 f"Please set it using `{config.PREFIX}setmode [disabled/single/random]`"
             )
             raise ValueError(f"Invalid JingleMode: {jingle_mode}")
@@ -89,24 +89,26 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
         if mode_enum == JingleMode.SINGLE:
             # Reject until the default jingle is set
             if database.guild_get_default_jingle_id(ctx.guild.id) is None:
-                await ctx.send(f":warning: Please set a default jingle first"
+                await ctx.send(f"{Emoji.WARNING} Please set a default jingle first"
                                f" using the `{config.PREFIX}setdefault` command.")
                 return
 
         database.guild_set_jingle_mode(ctx.guild.id, mode_enum)
         if mode_enum == JingleMode.DISABLED:
-            await ctx.send(":checkered_flag: Guild jingle mode has been set to `disabled` - no jingles will be played.")
+            await ctx.send(
+                f"{Emoji.CHECKERED_FLAG} Guild jingle mode has been set to `disabled` - no jingles will be played."
+            )
         elif mode_enum == JingleMode.SINGLE:
             default_jingle_id: Optional[str] = database.guild_get_default_jingle_id(ctx.guild.id)
             default_jingle: Jingle = jingle_manager.get_jingle_by_id(default_jingle_id)
             await ctx.send(
-                f":checkered_flag: Guild jingle mode has been set to `single` "
+                f"{Emoji.CHECKERED_FLAG} Guild jingle mode has been set to `single` "
                 f"- jingle `{default_jingle.title} ({default_jingle.path.name})` "
                 f"will be played upon members joining a voice channel."
             )
         elif mode_enum == JingleMode.RANDOM:
             await ctx.send(
-                ":checkered_flag: Guild jingle mode has been set to `random` - "
+                f"{Emoji.CHECKERED_FLAG} Guild jingle mode has been set to `random` - "
                 "a random jingle will be played each time a member joins a voice channel."
             )
 
@@ -116,10 +118,10 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
         default_jingle: Jingle = jingle_manager.get_jingle_by_id(default_jingle_id)
 
         if default_jingle is None:
-            await ctx.send(f":information_source: No default jingle is currently set. "
+            await ctx.send(f"{Emoji.INFORMATION_SOURCE} No default jingle is currently set. "
                            f"You can set one using `{config.PREFIX}setdefault`.")
         else:
-            await ctx.send(f":information_source: The default jingle is currently set to "
+            await ctx.send(f"{Emoji.INFORMATION_SOURCE} The default jingle is currently set to "
                            f"`{default_jingle.title} ({default_jingle.path.name})`")
 
     @command(name="setdefault", help="Sets the default jingle for this server.", usage="(jingle code, optional)")
@@ -159,7 +161,7 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
 
                 response: Message = await self._bot.wait_for("message", check=verify_response, timeout=120)
             except asyncio.TimeoutError:
-                await ctx.send(":alarm_clock: Timed out (`2 minutes`), try again.")
+                await ctx.send(f"{Emoji.ALARM_CLOCK} Timed out (`2 minutes`), try again.")
                 return
 
             new_default_jingle_id: str = sanitize_jingle_code(response.content)

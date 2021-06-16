@@ -1,5 +1,7 @@
 from discord.ext.commands import Bot, Cog, command, Context
 
+from jinglebot.emojis import Emoji
+
 
 class MiscCog(Cog, name="Misc"):
     def __init__(self, bot: Bot):
@@ -7,4 +9,4 @@ class MiscCog(Cog, name="Misc"):
 
     @command(name="ping", help="Pings the bot.")
     async def cmd_ping(self, ctx: Context):
-        await ctx.send(":musical_note: I'm alive!")
+        await ctx.send(f"{Emoji.MUSICAL_NOTE} I'm alive!")

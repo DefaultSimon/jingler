@@ -70,7 +70,7 @@ class UserSettingsCog(Cog, name="UserSettings"):
 
                 response: Message = await self._bot.wait_for("message", check=verify_response, timeout=120)
             except asyncio.TimeoutError:
-                await ctx.send(":alarm_clock: Timed out (`2 minutes`), try again.")
+                await ctx.send(f"{Emoji.ALARM_CLOCK} Timed out (`2 minutes`), try again.")
                 return
 
             new_theme_song_id: str = sanitize_jingle_code(response.content)
