@@ -21,6 +21,7 @@ class Emoji:
     GAME_DIE = ":game_die:"
     LEVEL_SLIDER = ":level_slider:"
     DETECTIVE = ":detective:"
+    TRUMPET = ":trumpet:"
 
 
 class UnicodeEmoji:
