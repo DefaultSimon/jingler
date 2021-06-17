@@ -19,7 +19,10 @@ class UserSettingsCog(Cog, name="UserSettings"):
     def __init__(self, bot: Bot):
         self._bot = bot
 
-    @command(name="getthemesong", help="Check your current theme song.")
+    @command(
+        name="getthemesong",
+        help="Check what your current theme song is, if you have one."
+    )
     async def cmd_get_theme_song(self, ctx: Context):
         theme_song_id: Optional[str] = db.user_get_theme_song_jingle_id(ctx.author.id)
         theme_song: Optional[Jingle] = jingle_manager.get_jingle_by_id(theme_song_id)
@@ -37,8 +40,12 @@ class UserSettingsCog(Cog, name="UserSettings"):
 
     @command(
         name="setthemesong",
-        help="Set your theme song (jingle). Use with \"none\" to disable.",
-        usage="(jingle code/\"none\" to disable)"
+        help="Set your personal theme song. \n"
+             "Run command with \"none\" to remove your theme song. "
+             "If you know your new theme song (jingle)'s code already, you can add that to the end of the command. "
+             "If you're not sure yet and want to browse, run the command without additional arguments and "
+             "you'll have a chance to pick your favourite new jingle interactively.",
+        usage="(jingle code/\"none\")"
     )
     async def cmd_set_theme_song(self, ctx: Context, prefilled_jingle_code: Optional[str] = None):
         if prefilled_jingle_code is not None:

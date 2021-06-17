@@ -27,8 +27,11 @@ class JinglePlayerCog(Cog, name="Jingles"):
     def __init__(self, bot: Bot):
         self._bot = bot
 
-    @command(name="playrandom", help="Manually play a random jingle.")
-    async def cmd_play(self, ctx: Context, jingle_mode_option: Optional[str] = None):
+    @command(
+        name="playrandom",
+        help="MManually play a random jingle in your current voice channel."
+    )
+    async def cmd_play(self, ctx: Context):
         # Find member's voice channel
         voice_state: Optional[VoiceState] = ctx.author.voice
         if not voice_state:
@@ -47,7 +50,11 @@ class JinglePlayerCog(Cog, name="Jingles"):
         else:
             await ctx.message.add_reaction(UnicodeEmoji.X)
 
-    @command(name="listjingles", help="Show available jingles.")
+    @command(
+        name="listjingles",
+        help="Interactively browse all available jingles. "
+             "React with appropriate arrows below the message to browse different pages."
+    )
     async def cmd_list_jingles(self, ctx: Context):
         listed_jingles = list(jingle_manager.jingles_by_id.values())
         formatted_jingle_list = [
@@ -66,12 +73,21 @@ class JinglePlayerCog(Cog, name="Jingles"):
             begin_pagination_immediately=True,
         )
 
-    @command(name="reloadjingles", help="Reload available jingles.")
+    @command(
+        name="reloadjingles",
+        help="Reload available jingles. This is generally unnecessary."
+    )
     async def cmd_reload_jingles(self, ctx: Context):
         jingle_manager.reload_available_jingles()
-        await ctx.send(f"{Emoji.BALLOT_BOX_WITH_CHECK} Jingles reloaded, **{len(jingle_manager.jingles_by_id)}** available.")
+        await ctx.send(
+            f"{Emoji.BALLOT_BOX_WITH_CHECK} Jingles reloaded, **{len(jingle_manager.jingles_by_id)}** available."
+        )
 
-    @command(name="addjingle", help="Interactively add a new jingle.")
+    @command(
+        name="addjingle",
+        help="Interactively add a new jingle. Give it a title and upload the .mp3 file. "
+             "Note: MP3 files are limited to 1 MB and 10 seconds."
+    )
     async def cmd_add_jingle(self, ctx: Context):
         # Request a title from the user
         await ctx.send(

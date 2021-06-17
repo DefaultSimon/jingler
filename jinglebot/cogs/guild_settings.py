@@ -17,12 +17,22 @@ log = logging.getLogger(__name__)
 database = Database()
 jingle_manager = JingleManager()
 
+HELP_SETMODE: str = \
+    "Sets the jingle mode for the current server.\n" \
+    "Available modes dictate behaviour upon members joining a voice channel:\n" \
+    "\tdisabled - do not play any jingles\n" \
+    "\tsingle - play a specific jingle (personal theme songs override this)\n" \
+    "\trandom - play a completely random jingle each time (personal theme songs override this)"
+
 
 class GuildSettingsCog(Cog, name="GuildSettings"):
     def __init__(self, bot: Bot):
         self._bot = bot
 
-    @command(name="getmode", help="Displays the current jingle mode.")
+    @command(
+        name="getmode",
+        help="Displays the jingle mode for the current server."
+    )
     async def cmd_getmode(self, ctx: Context):
         jingle_mode: JingleMode = database.guild_get_jingle_mode(ctx.guild.id)
 
@@ -64,7 +74,11 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
             )
             raise ValueError(f"Invalid JingleMode: {jingle_mode}")
 
-    @command(name="setmode", help="Sets the jingle mode for the current server.", usage="[disabled/single/random]")
+    @command(
+        name="setmode",
+        help=HELP_SETMODE,
+        usage="[disabled/single/random]"
+    )
     async def cmd_setmode(self, ctx: Context, mode_set: Optional[str] = None):
         requested_mode = None if mode_set is None else mode_set.strip().lower()
 
@@ -72,10 +86,7 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
             # Show help message
             await ctx.send(
                 f"Usage: `{config.PREFIX}setmode [disabled/single/random]`\n"
-                f"Available modes: \n"
-                f"\t`disabled` - do not play any jingles upon members joining a voice channel\n"
-                f"\t`single` - play a specific jingle upon members joining a voice channel\n"
-                f"\t`random` - play a random jingle upon members joining a voice channel"
+                + HELP_SETMODE
             )
             return
 
@@ -111,7 +122,10 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
                 "a random jingle will be played each time a member joins a voice channel."
             )
 
-    @command(name="getdefault", help="Displays the default jingle's information.")
+    @command(
+        name="getdefault",
+        help="Displays the default jingle for this server."
+    )
     async def cmd_getdefault(self, ctx: Context):
         default_jingle_id: Optional[str] = database.guild_get_default_jingle_id(ctx.guild.id)
         default_jingle: Jingle = jingle_manager.get_jingle_by_id(default_jingle_id)
@@ -123,7 +137,12 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
             await ctx.send(f"{Emoji.INFORMATION_SOURCE} The default jingle is currently set to "
                            f"`{default_jingle.title} ({default_jingle.path.name})`")
 
-    @command(name="setdefault", help="Sets the default jingle for this server.", usage="(jingle code, optional)")
+    @command(
+        name="setdefault",
+        help="Sets the default jingle for this server. "
+             "If the server jingle mode is not \"single\", this will have no effect.",
+        usage="(jingle code)"
+    )
     async def cmd_setdefault(self, ctx: Context, prefilled_jingle_id: Optional[str] = None):
         if prefilled_jingle_id is not None:
             # User already supplied the new default, check if the code is valid and update
@@ -144,8 +163,8 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
                 item_list=format_jingles_for_pagination(jingle_manager),
                 item_max_per_page=10,
                 end_content=f"\nPick a jingle to set as the default on this server and reply with its code. "
-                            f"If the \"single\" mode is activated, this jingle will "
-                            f"be played each time instead of a random jingle.",
+                            f"If the \"single\" mode is active this jingle will be played each time "
+                            f"a member joins a voice channel (unless they have their own theme song).",
                 code_block_begin="```md\n",
                 paginate_action_check=is_reaction_author(ctx.author.id),
                 timeout=120,

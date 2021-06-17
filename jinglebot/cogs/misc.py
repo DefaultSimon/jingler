@@ -17,7 +17,10 @@ class MiscCog(Cog, name="Misc"):
     def __init__(self, bot: Bot):
         self._bot = bot
 
-    @command(name="ping", help="Pings the bot.")
+    @command(
+        name="ping",
+        help="Shows some basic information about Jingler."
+    )
     async def cmd_ping(self, ctx: Context):
         # Uptime
         uptime_delta = timedelta(seconds=int(time.time() - STARTUP_TIME))
