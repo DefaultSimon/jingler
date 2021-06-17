@@ -131,6 +131,26 @@ class Database(metaclass=Singleton):
         jingle_mode_int = JINGLE_MODE_ENUM_TO_INT.get(jingle_mode)
         self._set_guild_field(guild_id, "jingle_mode", jingle_mode_int)
 
+    def guild_get_theme_songs_mode(self, guild_id: int) -> bool:
+        """
+        Get the setting that specifies whether theme songs should be played on this guild.
+        :param guild_id: Guild ID to get the setting for.
+        :return: Boolean indicating whether we should potentially play user-set theme songs in this guild.
+        """
+        self._ensure_guild(guild_id)
+
+        theme_songs_allowed: Optional[int] = self._get_guild_field(guild_id, "theme_song_mode")
+        return theme_songs_allowed is not None and theme_songs_allowed != 0
+
+    def guild_set_theme_songs_mode(self, guild_id: int, theme_songs_enabled: bool):
+        """
+        Set the theme song mode (whether personal theme songs should be played).
+        :param guild_id: Guild ID to set the mode for.
+        :param theme_songs_enabled: Whether to enable or disable playing personal theme songs in the guild.
+        """
+        self._ensure_guild(guild_id)
+        self._set_guild_field(guild_id, "theme_song_mode", int(bool(theme_songs_enabled)))
+
     def guild_get_default_jingle_id(self, guild_id: int) -> Optional[str]:
         """
         Return the default jingle ID for the current server.

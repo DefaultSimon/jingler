@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import traceback
 from random import choice
 from typing import Optional
 
@@ -43,14 +44,17 @@ async def play_jingle(channel: VoiceChannel, jingle: Jingle, fail_silently: bool
     try:
         # noinspection PyTypeChecker
         connection: VoiceClient = await channel.connect()
-    except ClientException as e:
-        log.warning(f"Error while trying to connect: {e}")
+    except ClientException:
+        log.warning(
+            f"Already connected to voice channel \"{channel.name}\" in \"{channel.guild.name}\"!"
+        )
 
         if fail_silently:
             return False
         else:
             raise
 
+    # noinspection PyBroadException
     try:
         audio = FFmpegOpusAudio(source=str(jingle.path.absolute()))
 
@@ -62,9 +66,9 @@ async def play_jingle(channel: VoiceChannel, jingle: Jingle, fail_silently: bool
         connection.play(audio)
 
         await asyncio.sleep(jingle.length)
-        await connection.disconnect(force=False)
+        await connection.disconnect(force=True)
         return True
-    finally:
-        if connection.is_connected():
-            await connection.disconnect(force=True)
-            return False
+    except Exception:
+        log.error(f"Exception while loading/playing jingle:\n{traceback.format_exc()}")
+        await connection.disconnect(force=True)
+        return False

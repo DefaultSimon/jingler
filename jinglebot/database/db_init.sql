@@ -4,12 +4,18 @@ CREATE TABLE IF NOT EXISTS guild_settings (
      */
     id INTEGER PRIMARY KEY,
     /**
-     Jingle mode:
-      0: disabled
-      1: single
-      2: random
+      Jingle modes:
+       0: disabled
+       1: single
+       2: random
      */
-    jingle_mode INTEGER DEFAULT 2,
+    jingle_mode INTEGER DEFAULT 2 NOT NULL,
+    /**
+      Personal theme song modes:
+       0: ignore theme songs
+       1: allow (play) theme songs if a user has one
+     */
+    theme_song_mode INTEGER DEFAULT 1 NOT NULL,
     /**
       ID of the jingle that was set as the default.
      */

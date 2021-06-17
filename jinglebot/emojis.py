@@ -22,6 +22,7 @@ class Emoji:
     LEVEL_SLIDER = ":level_slider:"
     DETECTIVE = ":detective:"
     TRUMPET = ":trumpet:"
+    PLACARD = ":placard:"
 
 
 class UnicodeEmoji:

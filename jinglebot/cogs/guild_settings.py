@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 database = Database()
 jingle_manager = JingleManager()
 
-HELP_SETMODE: str = \
+HELP_SET_JINGLE_MODE: str = \
     "Sets the jingle mode for the current server.\n" \
     "Available modes dictate behaviour upon members joining a voice channel:\n" \
     "\tdisabled - do not play any jingles\n" \
@@ -30,10 +30,10 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
         self._bot = bot
 
     @command(
-        name="getmode",
+        name="getjinglemode",
         help="Displays the jingle mode for the current server."
     )
-    async def cmd_getmode(self, ctx: Context):
+    async def cmd_get_jingle_mode(self, ctx: Context):
         jingle_mode: JingleMode = database.guild_get_jingle_mode(ctx.guild.id)
 
         if jingle_mode == JingleMode.SINGLE:
@@ -70,23 +70,23 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
         else:
             await ctx.send(
                 f"{Emoji.EXCLAMATION} Something went wrong, the jingle mode is invalid. "
-                f"Please set it using `{config.PREFIX}setmode [disabled/single/random]`"
+                f"Please set it using `{config.PREFIX}setjinglemode [disabled/single/random]`"
             )
             raise ValueError(f"Invalid JingleMode: {jingle_mode}")
 
     @command(
-        name="setmode",
-        help=HELP_SETMODE,
+        name="setjinglemode",
+        help=HELP_SET_JINGLE_MODE,
         usage="[disabled/single/random]"
     )
-    async def cmd_setmode(self, ctx: Context, mode_set: Optional[str] = None):
+    async def cmd_set_jingle_mode(self, ctx: Context, mode_set: Optional[str] = None):
         requested_mode = None if mode_set is None else mode_set.strip().lower()
 
         if requested_mode is None or mode_set not in ["single", "random", "disabled"]:
             # Show help message
             await ctx.send(
-                f"Usage: `{config.PREFIX}setmode [disabled/single/random]`\n"
-                + HELP_SETMODE
+                f"Usage: `{config.PREFIX}setjinglemode [disabled/single/random]`\n"
+                + HELP_SET_JINGLE_MODE
             )
             return
 
@@ -199,3 +199,57 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
             f"{Emoji.BALLOT_BOX_WITH_CHECK} Default jingle "
             f"set to `{new_default_jingle.title} ({new_default_jingle.path.name})`."
         )
+
+    @command(
+        name="getthemesongmode",
+        help="Check your current theme song setting for the server."
+    )
+    async def cmd_get_theme_song_mode(self, ctx: Context):
+        theme_song_mode: bool = database.guild_get_theme_songs_mode(ctx.guild.id)
+        if theme_song_mode is True:
+            await ctx.send(
+                f"{Emoji.PLACARD} Theme songs are currently **enabled**. If a member has their own theme song, "
+                f"it will be played when they join a voice channel (unless that feature is disabled as well)."
+            )
+        else:
+            await ctx.send(
+                f"{Emoji.PLACARD} Theme songs are currently **disabled**. Any potential theme songs will be ignored "
+                f"and which jingles are played is dictated by the jingle mode (see `{config.PREFIX}getjinglemode`)."
+            )
+
+    @command(
+        name="setthemesongmode",
+        help="Enable (play if set) or disable (ignore) theme songs for this server.",
+        usage="[enable/disable]"
+    )
+    async def cmd_set_theme_song_mode(self, ctx: Context, enable_or_disable: Optional[str] = None):
+        if enable_or_disable is None:
+            # Print help message
+            await ctx.send(
+                f"Usage: `{config.PREFIX}themesongs [enable/disable]`\n"
+                f"Enable (play if set) or disable (ignore) theme songs for this server."
+            )
+            return
+
+        enable_or_disable = enable_or_disable.strip().lower()
+        if enable_or_disable in ["enable", "enabled"]:
+            theme_song_option: bool = True
+        elif enable_or_disable in ["disable", "disabled"]:
+            theme_song_option: bool = False
+        else:
+            await ctx.send(
+                f"{Emoji.WARNING} Invalid mode (should be either `enable` or `disable`), please try again."
+            )
+            return
+
+        database.guild_set_theme_songs_mode(ctx.guild.id, theme_song_option)
+        if theme_song_option is True:
+            await ctx.send(
+                f"{Emoji.PLACARD} Theme songs are now **enabled** - if a member has "
+                f"their own theme song, it will be played."
+            )
+        else:
+            await ctx.send(
+                f"{Emoji.PLACARD} Theme songs are now **disabled** - any potential theme songs "
+                f"that members have will be ignored in this server."
+            )

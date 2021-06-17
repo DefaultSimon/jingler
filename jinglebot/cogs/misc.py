@@ -1,7 +1,9 @@
+import logging
 import time
 import subprocess
 from datetime import timedelta
 
+from discord import Game
 from discord.ext.commands import Bot, Cog, command, Context
 
 from jinglebot.configuration import pyproject, BASE_DIR
@@ -10,6 +12,7 @@ from jinglebot.emojis import Emoji
 
 STARTUP_TIME = time.time()
 
+log = logging.getLogger(__name__)
 db = Database()
 
 
@@ -47,3 +50,9 @@ class MiscCog(Cog, name="Misc"):
             f"Uptime: `{str(uptime_delta)}`\n"
             f"Database: `{db_total_changes}` changes since startup"
         )
+
+    @Cog.listener(name="on_ready")
+    async def misc_on_ready(self):
+        log.info("Setting presence to \"jingles\".")
+        jingle_activity: Game = Game(name="jingles")
+        await self._bot.change_presence(activity=jingle_activity)

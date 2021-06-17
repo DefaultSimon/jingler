@@ -181,10 +181,14 @@ class JinglePlayerCog(Cog, name="Jingles"):
 
         target_voice_channel: VoiceChannel = state_after.channel
 
-        # If this user has a theme song, play that one
+        # If this user has a theme song (and they are enabled on the server), play that one
         # Otherwise pick a guild jingle (random/default, depending on setting)
         user_theme_song_id: Optional[str] = database.user_get_theme_song_jingle_id(member.id)
-        if user_theme_song_id is not None and user_theme_song_id in jingle_manager.jingles_by_id:
+        guild_theme_songs_enabled: bool = database.guild_get_theme_songs_mode(guild_id)
+
+        if guild_theme_songs_enabled is True \
+           and user_theme_song_id is not None \
+           and user_theme_song_id in jingle_manager.jingles_by_id:
             jingle = jingle_manager.get_jingle_by_id(user_theme_song_id)
             log.info(
                 f"User \"{member.name}\" ({member.id}) has theme song: \"{jingle.title}\" ({jingle.path.name})"
