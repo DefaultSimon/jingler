@@ -8,14 +8,14 @@ custom member "theme songs" upon joining and more.
 ## 1. About
 Jingler is a Discord bot for playing short, usually random, audio clips (also called [jingles](https://www.merriam-webster.com/dictionary/jingle)).
 
-The list of available jingles is currently global and each user can add upload their own short jingles, which will in turn also be available
+The list of available jingles is currently global and each user can upload their own short jingles, which will in turn also be available
 to every other user and server. By default, Jingler will play a random jingle each time a member joins a voice channel.
 
 Each server has some configuration options: they can disable the automatic jingles (manually playing them with `.playrandom` will still be available),
 they can set a specific jingle for their server or configure Jingler to always play a random, fresh jingle (best option 😉 ).
 
 To spice things up, each user can set their own favourite jingle - a "theme song" of sorts. Unless automatic jingles are disabled on that server,
-the theme song will be played each time they join a voice channel.
+their theme song will be played each time they join a voice channel.
 
 ## 2. Commands
 
@@ -57,7 +57,7 @@ Grab a person familiar with setting up Python and/or Discord bots and let's go!
 - First make sure you have [Python 3.8+](https://www.python.org/) installed. Then, follow the instructions on [installing Poetry](https://python-poetry.org/docs/#installation), a Python package manager.
 - When both Python and Poetry are installed, [clone](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository-from-github/cloning-a-repository) or download the Jingler repository
 and store or extract it into a directory of your choosing.
-- Install dependencies by running `poetry install`
+- Install dependencies by running `poetry install`.
 - Copy `data/configuration.EXAMPLE.toml` to `data/configuration.toml` and fill out the bot token and server whitelist.
 - Start the bot by running `poetry run python jingle_bot.py` or by using `run.sh` (needs `screen` installed) or `run.ps1`.
 - And that's it! Enjoy!
