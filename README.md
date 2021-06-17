@@ -2,8 +2,8 @@
 ![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue?style=flat-square)
 ![Version](https://img.shields.io/badge/jingler-1.0.0-orange?style=flat-square)
 
-A Discord bot for spicing up your voice channels with random jingles, 
-custom member "theme songs" upon joining a voice channel and more.
+A Discord bot for spicing up your voice channel entry with random jingles, 
+custom member "theme songs" and more.
 
 ## 1. About
 Jingler is a Discord bot for playing short, usually random, audio clips (also called [jingles](https://www.merriam-webster.com/dictionary/jingle)).
@@ -28,12 +28,14 @@ their theme song will be played each time they join a voice channel.
 | .reloadjingles |   /   | Reload available jingles. This is generally unnecessary.                                                                      |
 
 ### Server settings
-|   Command      |           Usage            |                                                                                                                                                            Description                                                                                                                                                           |
-|----------------|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| .getdefault    |             /              | Displays the default jingle for this server.                                                                                                                                                                                                                                                                                     |
-| .setdefault    | (jingle code)              | Sets the default jingle for this server. If the server jingle mode isn't set to "single", this will have no effect.                                                                                                                                                                                                                     |
-| .getjinglemode |             /              | Displays the jingle mode for the current server.                                                                                                                                                                                                                                                                                 |
-| .setjinglemode | [disabled/single/random]   | Sets the jingle mode for the current server. Available modes dictate behaviour upon members joining a voice channel:<br><br> **disabled** - do not play any jingles<br> **single** - play a specific jingle (personal theme songs override this)<br> **random** - play a completely random jingle each time (personal theme songs override this) |
+|   Command         |           Usage            |                                                                                                                                                            Description                                                                                                                                                           |
+|-------------------|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| .getdefault       |             /              | Displays the default jingle for this server.                                                                                                                                                                                                                                                                                     |
+| .setdefault       | (jingle code)              | Sets the default jingle for this server. If the server jingle mode isn't set to "single", this will have no effect.                                                                                                                                                                                                              |
+| .getjinglemode    |             /              | Displays the jingle mode for the current server.                                                                                                                                                                                                                                                                                 |
+| .setjinglemode    | [disabled/single/random]   | Sets the jingle mode for the current server. Available modes dictate behaviour upon members joining a voice channel:<br><br> **disabled** - do not play any jingles<br> **single** - play a specific jingle (personal theme songs override this)<br> **random** - play a completely random jingle each time (personal theme songs override this) |
+| .getthemesongmode |             /              | Check your current theme song mode in the server.                                                                                                                                                                                                                                                                            |
+| .setthemesongmode | [enable/disable]           | Enable (play if a member has one) or disable (ignore) personal theme songs for this server.                                                                                                                                                                                                                                                            |
 
 ### User settings
 

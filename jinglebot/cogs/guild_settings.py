@@ -202,7 +202,7 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
 
     @command(
         name="getthemesongmode",
-        help="Check your current theme song setting for the server."
+        help="Check your current theme song mode in the server."
     )
     async def cmd_get_theme_song_mode(self, ctx: Context):
         theme_song_mode: bool = database.guild_get_theme_songs_mode(ctx.guild.id)
@@ -219,7 +219,7 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
 
     @command(
         name="setthemesongmode",
-        help="Enable (play if set) or disable (ignore) theme songs for this server.",
+        help="Enable (play if a member has one) or disable (ignore) personal theme songs for this server.",
         usage="[enable/disable]"
     )
     async def cmd_set_theme_song_mode(self, ctx: Context, enable_or_disable: Optional[str] = None):
