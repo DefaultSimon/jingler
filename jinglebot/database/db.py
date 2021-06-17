@@ -1,4 +1,5 @@
 import logging
+import os
 import pathlib
 from sqlite3 import Connection, connect, Cursor
 from typing import Dict, Optional, Any
@@ -10,7 +11,7 @@ from jinglebot.utilities import get_nth_with_default, Singleton
 log = logging.getLogger(__name__)
 
 DATABASE_NAME = "jinglebot.db"
-DB_INIT_FILEPATH = pathlib.Path(__file__, "..", "db_init.sql")
+DB_INIT_FILEPATH = pathlib.Path(os.path.dirname(__file__), "db_init.sql")
 
 
 JINGLE_MODE_INT_TO_ENUM: Dict[int, JingleMode] = {
