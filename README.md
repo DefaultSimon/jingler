@@ -57,6 +57,7 @@ Grab a person familiar with setting up Python and/or Discord bots and let's go!
 - First make sure you have [Python 3.8+](https://www.python.org/) installed. Then, follow the instructions on [installing Poetry](https://python-poetry.org/docs/#installation), a Python package manager.
 - When both Python and Poetry are installed, [clone](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository-from-github/cloning-a-repository) or download the Jingler repository
 and store or extract it into a directory of your choosing.
+- Install dependencies by running `poetry install`
 - Copy `data/configuration.EXAMPLE.toml` to `data/configuration.toml` and fill out the bot token and server whitelist.
 - Start the bot by running `poetry run python jingle_bot.py` or by using `run.sh` (needs `screen` installed) or `run.ps1`.
 - And that's it! Enjoy!
