@@ -226,7 +226,7 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
         if enable_or_disable is None:
             # Print help message
             await ctx.send(
-                f"Usage: `{config.PREFIX}themesongs [enable/disable]`\n"
+                f"Usage: `{config.PREFIX}setthemesongmode [enable/disable]`\n"
                 f"Enable (play if set) or disable (ignore) theme songs for this server."
             )
             return
