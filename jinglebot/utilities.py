@@ -13,13 +13,9 @@ def generate_id(length: int = 18):
 
 def generate_jingle_id():
     """
-    Generate a 6-character-long ID containing hex chars.
-
-    Collision probability when generating 5k IDs is around
-    1 - e^((-5000*4999)/(2*(16)^6)) = 0.525
-    That's good enough.
+    Generate a 5-character-long ID containing hex chars.
     """
-    return uuid.uuid4().hex.upper()[:6]
+    return uuid.uuid4().hex.upper()[:5]
 
 
 def sanitize_jingle_code(content: str) -> str:

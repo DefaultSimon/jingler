@@ -4,10 +4,14 @@ from typing import Any, List
 
 from toml import load
 
-DATA_DIR = pathlib.Path(os.path.dirname(__file__), "..", "data")
+BASE_DIR = pathlib.Path(os.path.dirname(__file__), "..")
+DATA_DIR = BASE_DIR / "data"
+
 CONFIGURATION_FILENAME = pathlib.Path("configuration.toml")
+PYPROJECT_FILENAME = pathlib.Path("pyproject.toml")
 
 CONFIGURATION_FILE = DATA_DIR / CONFIGURATION_FILENAME
+PYPROJECT_FILE = BASE_DIR / PYPROJECT_FILENAME
 
 
 class TOMLConfig:
@@ -69,4 +73,19 @@ class DiscordJingleConfig:
         )
 
 
+class JinglerPyproject:
+    __slots__ = ("VERSION", )
+
+    def __init__(self, toml_config: TOMLConfig):
+        _tool_poetry_table = toml_config.get_table("tool").get_table("poetry")
+        self.VERSION = _tool_poetry_table.get("version")
+
+    @classmethod
+    def load_pyproject(cls) -> "JinglerPyproject":
+        return JinglerPyproject(
+            TOMLConfig.from_filename(str(PYPROJECT_FILE))
+        )
+
+
 config = DiscordJingleConfig.load_main_configuration()
+pyproject = JinglerPyproject.load_pyproject()
