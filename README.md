@@ -3,7 +3,7 @@
 ![Version](https://img.shields.io/badge/jingler-1.0.0-orange?style=flat-square)
 
 A Discord bot for spicing up your voice channels with random jingles, 
-custom member "theme songs" upon joining and more.
+custom member "theme songs" upon joining a voice channel and more.
 
 ## 1. About
 Jingler is a Discord bot for playing short, usually random, audio clips (also called [jingles](https://www.merriam-webster.com/dictionary/jingle)).
