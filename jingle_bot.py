@@ -1,7 +1,9 @@
 import logging
+import traceback
+
 logging.basicConfig(level=logging.INFO)
 
-from discord.ext.commands import Bot, when_mentioned_or
+from discord.ext.commands import Bot, when_mentioned_or, Context, CheckFailure
 
 from jinglebot.database.db import Database
 from jinglebot.configuration import config
@@ -24,6 +26,22 @@ jingle_manager = JingleManager()
 @bot.event
 async def on_ready():
     log.info("Bot is ready!")
+
+
+if config.USE_SERVER_WHITELIST:
+    @bot.check
+    async def check_whitelist(ctx: Context):
+        return ctx.guild.id in config.SERVER_WHITELIST
+
+
+@bot.event
+async def on_command_error(ctx: Context, exception):
+    if not isinstance(exception, CheckFailure):
+        log.error(
+            f"Command error: command={ctx.command}, author={ctx.author} ({ctx.author.id}), "
+            f"args={ctx.args}, kwargs={ctx.kwargs}:\n"
+            f"{traceback.format_exc()}"
+        )
 
 
 bot.add_cog(GuildSettingsCog(bot))

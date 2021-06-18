@@ -52,19 +52,27 @@ class TOMLConfig:
 
 class DiscordJingleConfig:
     __slots__ = (
-        "BOT_TOKEN", "ENABLED_SERVERS", "PREFIX",
+        "BOT_TOKEN",
+        "PREFIX",
+        "USE_SERVER_WHITELIST", "SERVER_WHITELIST",
+        "MAX_JINGLE_FILESIZE_MB", "MAX_JINGLE_LENGTH_SECONDS", "MAX_JINGLE_TITLE_LENGTH"
     )
 
     def __init__(self, toml_config: TOMLConfig):
         _auth_table = toml_config.get_table("Auth")
-        self.BOT_TOKEN: str = _auth_table.get("token")
+        self.BOT_TOKEN: str = str(_auth_table.get("token", ""))
 
-        _jingle_table = toml_config.get_table("Jingles")
-        self.ENABLED_SERVERS: List[int] = _jingle_table.get("enabled_servers")
+        _general_table = toml_config.get_table("General")
+        self.PREFIX: str = str(_general_table.get("prefix", "."))
 
-        _misc_table = toml_config.get_table("Misc")
-        self.PREFIX: str = _misc_table.get("prefix")
+        _server_table = toml_config.get_table("Server")
+        self.USE_SERVER_WHITELIST: bool = bool(_server_table.get("use_server_whitelist", False))
+        self.SERVER_WHITELIST: List[int] = list(_server_table.get("server_whitelist", []))
 
+        _jingles_table = toml_config.get_table("Jingles")
+        self.MAX_JINGLE_FILESIZE_MB: float = round(int(_jingles_table.get("max_jingle_filesize_kb", 1024)) / 1024, 2)
+        self.MAX_JINGLE_LENGTH_SECONDS: float = float(_jingles_table.get("max_jingle_length_seconds", 10))
+        self.MAX_JINGLE_TITLE_LENGTH: int = int(_jingles_table.get("max_jingle_title_length", 65))
 
     @classmethod
     def load_main_configuration(cls) -> "DiscordJingleConfig":

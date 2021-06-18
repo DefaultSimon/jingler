@@ -21,10 +21,6 @@ log = logging.getLogger(__name__)
 database = Database()
 jingle_manager = JingleManager()
 
-MAX_JINGLE_FILE_SIZE_MB = 1
-MAX_JINGLE_LENGTH_SEC = 10
-MAX_JINGLE_TITLE_LENGTH = 65
-
 
 class JinglePlayerCog(Cog, name="Jingles"):
     def __init__(self, bot: Bot):
@@ -95,7 +91,7 @@ class JinglePlayerCog(Cog, name="Jingles"):
         # Request a title from the user
         await ctx.send(
             f"{Emoji.SCROLL} You're about to add a new jingle. "
-            f"What title would you like to give it (max. {MAX_JINGLE_TITLE_LENGTH} characters)?"
+            f"What title would you like to give it (max. {config.MAX_JINGLE_TITLE_LENGTH} characters)?"
         )
 
         try:
@@ -109,7 +105,7 @@ class JinglePlayerCog(Cog, name="Jingles"):
 
         jingle_title: str = truncate_string(
             str(user_title_message.content).strip(),
-            MAX_JINGLE_TITLE_LENGTH
+            config.MAX_JINGLE_TITLE_LENGTH
         )
 
         # Generate a random code, but make sure there are no collisions
@@ -127,8 +123,8 @@ class JinglePlayerCog(Cog, name="Jingles"):
         await ctx.send(
             f"{Emoji.FILE_FOLDER} Cool, the title will be `{jingle_title}`!\n"
             f"Please upload an `.mp3` file to finish adding a new jingle.\n"
-            f"Make sure the file is smaller than `{MAX_JINGLE_FILE_SIZE_MB} MB` "
-            f"and shorter than `{MAX_JINGLE_LENGTH_SEC} seconds`."
+            f"Make sure the file is smaller than `{config.MAX_JINGLE_FILESIZE_MB} MB` "
+            f"and shorter than `{config.MAX_JINGLE_LENGTH_SECONDS} seconds`."
         )
 
         try:
@@ -145,7 +141,7 @@ class JinglePlayerCog(Cog, name="Jingles"):
         attachment: Attachment = user_upload_message.attachments[0]
 
         # Make sure the file size limit is respected
-        if attachment.size >= (1024 * 1024 * MAX_JINGLE_FILE_SIZE_MB):
+        if attachment.size >= (1024 * 1024 * config.MAX_JINGLE_FILESIZE_MB):
             await ctx.send(f"{Emoji.X} File is too big.")
             return
 
@@ -164,7 +160,7 @@ class JinglePlayerCog(Cog, name="Jingles"):
         )
 
         # Make sure the audio file length limit is respected
-        if jingle_length := get_audio_file_length(output_jingle_path) > MAX_JINGLE_LENGTH_SEC:
+        if jingle_length := get_audio_file_length(output_jingle_path) > config.MAX_JINGLE_LENGTH_SECONDS:
             await ctx.send(f"{Emoji.WARNING} File is too long (`{jingle_length} s`), please shorten and try again.")
 
             # Don't forget to delete the file!
@@ -193,7 +189,7 @@ class JinglePlayerCog(Cog, name="Jingles"):
 
         # Make sure we only trigger this on whitelisted servers
         guild_id = member.guild.id
-        if guild_id not in config.ENABLED_SERVERS:
+        if config.USE_SERVER_WHITELIST and guild_id not in config.SERVER_WHITELIST:
             return
 
         # Make sure we only trigger this on voice channel joins

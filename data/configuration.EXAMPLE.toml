@@ -1,7 +1,20 @@
 [Auth]
 token = "bot token here"
 
-[Jingles]
-enabled_servers = [
+[General]
+# Prefix for all Jingler commands
+# Commands should also work as mentions
+prefix = "."
+
+[Server]
+# Whether to whitelist a specific list of servers (by ID), occasionally useful
+use_server_whitelist = true
+server_whitelist = [
     125450518346526876, # Some server id
 ]
+
+[Jingles]
+# Jingle filesize and length limits.
+max_jingle_filesize_kb = 1024
+max_jingle_length_seconds = 10
+max_jingle_title_length = 65
