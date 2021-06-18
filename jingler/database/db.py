@@ -4,13 +4,13 @@ import pathlib
 from sqlite3 import Connection, connect, Cursor
 from typing import Dict, Optional, Any
 
-from jinglebot.configuration import DATA_DIR
-from jinglebot.jingles import JingleMode
-from jinglebot.utilities import get_nth_with_default, Singleton
+from jingler.configuration import DATA_DIR
+from jingler.jingles import JingleMode
+from jingler.utilities import get_nth_with_default, Singleton
 
 log = logging.getLogger(__name__)
 
-DATABASE_NAME = "jinglebot.db"
+DATABASE_NAME = "jingler.db"
 DB_INIT_FILEPATH = pathlib.Path(os.path.dirname(__file__), "db_init.sql")
 
 

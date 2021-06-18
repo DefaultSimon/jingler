@@ -6,8 +6,8 @@ from typing import Optional
 
 from discord import VoiceChannel, VoiceClient, ClientException, FFmpegOpusAudio, Guild
 
-from jinglebot.database.db import Database
-from jinglebot.jingles import Jingle, JingleManager, JingleMode
+from jingler.database.db import Database
+from jingler.jingles import Jingle, JingleManager, JingleMode
 
 log = logging.getLogger(__name__)
 

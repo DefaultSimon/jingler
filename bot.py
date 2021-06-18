@@ -1,20 +1,20 @@
 # Nothing is imported, this sets up the logging
 # noinspection PyUnresolvedReferences
-import jinglebot.logs
+import jingler.logs
 
 import logging
 import traceback
 
 from discord.ext.commands import Bot, when_mentioned_or, Context, CheckFailure
 
-from jinglebot.database.db import Database
-from jinglebot.configuration import config
-from jinglebot.jingles import JingleManager
+from jingler.database.db import Database
+from jingler.configuration import config
+from jingler.jingles import JingleManager
 
-from jinglebot.cogs.guild_settings import GuildSettingsCog
-from jinglebot.cogs.jingle_player import JinglePlayerCog
-from jinglebot.cogs.misc import MiscCog
-from jinglebot.cogs.user_settings import UserSettingsCog
+from jingler.cogs.guild_settings import GuildSettingsCog
+from jingler.cogs.jingle_player import JinglePlayerCog
+from jingler.cogs.misc import MiscCog
+from jingler.cogs.user_settings import UserSettingsCog
 
 log = logging.getLogger(__name__)
 

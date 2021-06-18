@@ -4,8 +4,8 @@ import pathlib
 from json import dump
 
 import mutagen
-from jinglebot.jingles import JINGLES_DIR
-from jinglebot.utilities import generate_id
+from jingler.jingles import JINGLES_DIR
+from jingler.utilities import generate_id
 
 files_with_missing_meta: List[Tuple[pathlib.Path, pathlib.Path]] = []
 for non_meta_file in filter(lambda file: file.suffix not in [".meta", ".disabled", ".old"], JINGLES_DIR.iterdir()):

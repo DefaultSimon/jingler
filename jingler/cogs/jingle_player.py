@@ -6,15 +6,15 @@ from typing import Optional
 from discord import VoiceState, VoiceChannel, Message, Attachment, Member
 from discord.ext.commands import Cog, Bot, command, Context
 
-from jinglebot.configuration import config
-from jinglebot.database.db import Database
-from jinglebot.emojis import UnicodeEmoji, Emoji
-from jinglebot.jingles import JingleManager, JINGLES_DIR, save_jingle_meta, get_audio_file_length, JingleMode, \
+from jingler.configuration import config
+from jingler.database.db import Database
+from jingler.emojis import UnicodeEmoji, Emoji
+from jingler.jingles import JingleManager, JINGLES_DIR, save_jingle_meta, get_audio_file_length, JingleMode, \
     sanitize_jingle_path
-from jinglebot.pagination import Pagination, is_reaction_author
-from jinglebot.player import get_guild_jingle, play_jingle
-from jinglebot.utilities import truncate_string, generate_jingle_id
-from jinglebot.voice_state_diff import get_voice_state_change, VoiceStateAction
+from jingler.pagination import Pagination, is_reaction_author
+from jingler.player import get_guild_jingle, play_jingle
+from jingler.utilities import truncate_string, generate_jingle_id
+from jingler.voice_state_diff import get_voice_state_change, VoiceStateAction
 
 log = logging.getLogger(__name__)
 

@@ -7,7 +7,7 @@ from discord import Enum
 from mutagen import File
 from pathlib import Path
 
-from jinglebot.utilities import Singleton
+from jingler.utilities import Singleton
 
 log = logging.getLogger(__name__)
 

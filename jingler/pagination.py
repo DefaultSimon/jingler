@@ -4,7 +4,7 @@ from typing import List, Callable, Optional, Union, Tuple, Iterable
 
 from discord import TextChannel, Message, Client, Reaction, User, Member
 
-from jinglebot.emojis import UnicodeEmoji
+from jingler.emojis import UnicodeEmoji
 
 ON_REACTION_ADD_CALLABLE = Callable[[Reaction, Union[Member, User]], bool]
 

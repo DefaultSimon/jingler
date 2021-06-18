@@ -5,12 +5,12 @@ from typing import Optional
 from discord import Message
 from discord.ext.commands import Cog, Bot, command, Context
 
-from jinglebot.configuration import config
-from jinglebot.database.db import Database
-from jinglebot.emojis import Emoji
-from jinglebot.jingles import JingleManager, Jingle, format_jingles_for_pagination, JingleMode
-from jinglebot.pagination import is_reaction_author, Pagination
-from jinglebot.utilities import sanitize_jingle_code
+from jingler.configuration import config
+from jingler.database.db import Database
+from jingler.emojis import Emoji
+from jingler.jingles import JingleManager, Jingle, format_jingles_for_pagination, JingleMode
+from jingler.pagination import is_reaction_author, Pagination
+from jingler.utilities import sanitize_jingle_code
 
 log = logging.getLogger(__name__)
 

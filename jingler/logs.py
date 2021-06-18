@@ -2,7 +2,7 @@ import logging
 from logging import Formatter
 from logging.handlers import TimedRotatingFileHandler
 
-from jinglebot.configuration import DATA_DIR
+from jingler.configuration import DATA_DIR
 
 LOG_DIR_NAME = "logs"
 LOG_FILE_NAME = "jingler.log"

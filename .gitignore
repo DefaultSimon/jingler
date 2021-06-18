@@ -8,5 +8,5 @@ data/*.toml
 !data/*.EXAMPLE.toml
 
 jingles
-data/jinglebot.db
+data/jingler.db
 data/logs

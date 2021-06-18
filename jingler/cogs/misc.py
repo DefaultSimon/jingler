@@ -7,9 +7,9 @@ from datetime import timedelta
 from discord import Game
 from discord.ext.commands import Bot, Cog, command, Context
 
-from jinglebot.configuration import pyproject, BASE_DIR
-from jinglebot.database.db import Database
-from jinglebot.emojis import Emoji
+from jingler.configuration import pyproject, BASE_DIR
+from jingler.database.db import Database
+from jingler.emojis import Emoji
 
 STARTUP_TIME = time.time()
 
