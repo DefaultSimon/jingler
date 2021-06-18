@@ -6,16 +6,19 @@ A Discord bot for spicing up your voice channel entry with random jingles,
 custom member "theme songs" and more.
 
 ## 1. About
-Jingler is a Discord bot for playing short, usually random, audio clips (also called [jingles](https://www.merriam-webster.com/dictionary/jingle)).
+Jingler is a Discord bot for playing short audio clips (also called [jingles](https://www.merriam-webster.com/dictionary/jingle)) in voice channels.
 
-The list of available jingles is currently global and each user can upload their own short jingles, which will in turn also be available
-to every other user and server. By default, Jingler will play a random jingle each time a member joins a voice channel.
+Jingler maintains a global list of available jingles. Each user can search them and upload their own short jingles, which will in turn also become available
+to every other user. By default, Jingler will play a random jingle each time a member joins a voice channel.
 
-Each server has some configuration options: they can disable the automatic jingles (manually playing them with `.playrandom` will still be available),
-they can set a specific jingle for their server or configure Jingler to always play a random, fresh jingle (best option 😉 ).
+To spice things up, each user can set their own favourite jingle - a "theme song" of sorts. If a user has a theme song, it will be played each time they
+enter a voice channel. Theme songs override the jingle mode on each server unless their theme song mode is set to `disable` (see below for server configuration).
 
-To spice things up, each user can set their own favourite jingle - a "theme song" of sorts. Unless automatic jingles are disabled on that server,
-their theme song will be played each time they join a voice channel.
+You can control jingle behaviour per-server:
+- Jingle mode: you can disable all automatic jingles (`disabled` mode; manually playing them with `.playrandom` is still possible), 
+  set a specific jingle for your server (`single` mode) or configure Jingler to always play a random, fresh jingle (`random` mode; best option 😉 ).
+- Theme song mode: theme songs are user-specific and (by default) override the server jingle mode if a user has one. If you wish to ignore personal theme songs instead and want to
+  force the jingle mode you set for your server, set the theme song mode to `disabled`.
 
 ## 2. Commands
 
