@@ -21,11 +21,12 @@ HELP_SET_JINGLE_MODE: str = \
     "Sets the jingle mode for the current server.\n" \
     "Available modes dictate behaviour upon members joining a voice channel:\n" \
     "\tdisabled - do not play any jingles\n" \
-    "\tsingle - play a specific jingle (personal theme songs override this)\n" \
-    "\trandom - play a completely random jingle each time (personal theme songs override this)"
+    "\tsingle - play a specific jingle\n" \
+    "\trandom - play a completely random jingle each time\n" \
+    "Note that personal theme songs override this setting, unless the theme song mode is set to \"disabled\"."
 
 
-class GuildSettingsCog(Cog, name="GuildSettings"):
+class GuildSettingsCog(Cog, name="ServerSettings"):
     def __init__(self, bot: Bot):
         self._bot = bot
 
@@ -140,7 +141,9 @@ class GuildSettingsCog(Cog, name="GuildSettings"):
     @command(
         name="setdefault",
         help="Sets the default jingle for this server. "
-             "If the server jingle mode is not \"single\", this will have no effect.",
+             "If the server jingle mode isn't set to \"single\", this will have no effect. "
+             "If you know the jingle code already, you can pass it immediately. "
+             "If not, you'll have a chance to pick one interactively.",
         usage="(jingle code)"
     )
     async def cmd_setdefault(self, ctx: Context, prefilled_jingle_id: Optional[str] = None):
