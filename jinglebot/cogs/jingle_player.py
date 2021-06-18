@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from pathlib import Path
 from typing import Optional
 
 from discord import VoiceState, VoiceChannel, Message, Attachment, Member
@@ -8,7 +9,8 @@ from discord.ext.commands import Cog, Bot, command, Context
 from jinglebot.configuration import config
 from jinglebot.database.db import Database
 from jinglebot.emojis import UnicodeEmoji, Emoji
-from jinglebot.jingles import JingleManager, JINGLES_DIR, save_jingle_meta, get_audio_file_length, JingleMode
+from jinglebot.jingles import JingleManager, JINGLES_DIR, save_jingle_meta, get_audio_file_length, JingleMode, \
+    sanitize_jingle_path
 from jinglebot.pagination import Pagination, is_reaction_author
 from jinglebot.player import get_guild_jingle, play_jingle
 from jinglebot.utilities import truncate_string, generate_jingle_id
@@ -21,6 +23,7 @@ jingle_manager = JingleManager()
 
 MAX_JINGLE_FILE_SIZE_MB = 1
 MAX_JINGLE_LENGTH_SEC = 10
+MAX_JINGLE_TITLE_LENGTH = 65
 
 
 class JinglePlayerCog(Cog, name="Jingles"):
@@ -92,7 +95,7 @@ class JinglePlayerCog(Cog, name="Jingles"):
         # Request a title from the user
         await ctx.send(
             f"{Emoji.SCROLL} You're about to add a new jingle. "
-            "What title would you like to give it (max. 65 characters)?"
+            f"What title would you like to give it (max. {MAX_JINGLE_TITLE_LENGTH} characters)?"
         )
 
         try:
@@ -104,13 +107,26 @@ class JinglePlayerCog(Cog, name="Jingles"):
             await ctx.send(f"{Emoji.ALARM_CLOCK} Timed out (2 minutes), try again.")
             return
 
-        jingle_title = truncate_string(str(user_title_message.content).strip(), 65)
-        jingle_id = generate_jingle_id()
+        jingle_title: str = truncate_string(
+            str(user_title_message.content).strip(),
+            MAX_JINGLE_TITLE_LENGTH
+        )
+
+        # Generate a random code, but make sure there are no collisions
+        # This should be very very very rare, but it's worth knowing
+        jingle_id: Optional[str] = None
+        while jingle_id is None:
+            potential_jingle_id = generate_jingle_id()
+
+            if potential_jingle_id not in jingle_manager.jingles_by_id:
+                jingle_id = potential_jingle_id
+            else:
+                log.warning(f"Jingle ID collision detected ({potential_jingle_id}), generating new one.")
 
         # Request an upload from the user
         await ctx.send(
-            f"{Emoji.FILE_FOLDER} Cool, the title will be `{jingle_title}`! "
-            f"Please upload an `.mp3` file to add a new jingle with your title.\n"
+            f"{Emoji.FILE_FOLDER} Cool, the title will be `{jingle_title}`!\n"
+            f"Please upload an `.mp3` file to finish adding a new jingle.\n"
             f"Make sure the file is smaller than `{MAX_JINGLE_FILE_SIZE_MB} MB` "
             f"and shorter than `{MAX_JINGLE_LENGTH_SEC} seconds`."
         )
@@ -134,14 +150,18 @@ class JinglePlayerCog(Cog, name="Jingles"):
             return
 
         # Download the file into "jingles"
-        output_jingle_path = JINGLES_DIR / attachment.filename
+        output_jingle_path: Path = sanitize_jingle_path(JINGLES_DIR, attachment.filename)
         if output_jingle_path.exists():
             await ctx.send(f"{Emoji.WARNING} A file with this name already exists, please rename and try again.")
             return
 
         response = await ctx.send(f"{Emoji.YARN} Saving...")
+        await attachment.save(str(output_jingle_path))
 
-        await attachment.save(str(output_jingle_path.absolute()))
+        log.info(
+            f"User \"{ctx.author}\" ({ctx.author.id}) is adding a new jingle: "
+            f"title=\"{jingle_title}\", filepath=\"{str(output_jingle_path)}\", ID=\"{jingle_id}\"."
+        )
 
         # Make sure the audio file length limit is respected
         if jingle_length := get_audio_file_length(output_jingle_path) > MAX_JINGLE_LENGTH_SEC:
@@ -152,12 +172,13 @@ class JinglePlayerCog(Cog, name="Jingles"):
                 output_jingle_path.unlink()
             return
 
-        # If everything checks out, generate the .meta file, reload available jingles and inform the user
+        # If everything checks out, generate the .meta file, reload available jingles
+        # and inform the user the new jingle has been successfully added
         save_jingle_meta(output_jingle_path, jingle_title, jingle_id)
 
         jingle_manager.reload_available_jingles()
         await response.edit(
-            content=f"{Emoji.YARN} Jingle saved and available with code `{jingle_id}`."
+            content=f"{Emoji.YARN} Jingle `{jingle_title}` saved and available with code `{jingle_id}`."
                     f"\n`{len(jingle_manager.jingles_by_id)}` jingles now available."
         )
 

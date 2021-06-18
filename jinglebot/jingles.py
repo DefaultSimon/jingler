@@ -1,16 +1,17 @@
-import pathlib
 import logging
 from typing import Dict, Optional, List
 from json import load, dump
 
+import pathvalidate
 from discord import Enum
 from mutagen import File
+from pathlib import Path
 
 from jinglebot.utilities import Singleton
 
 log = logging.getLogger(__name__)
 
-JINGLES_DIR = pathlib.Path(__file__, "..", "..", "jingles").resolve()
+JINGLES_DIR = (Path(__file__).parent / "../jingles").resolve()
 log.info(f"Jingles directory: {JINGLES_DIR}")
 
 
@@ -33,7 +34,7 @@ def format_jingles_for_pagination(jingle_manager: "JingleManager") -> List[str]:
     ]
 
 
-def get_audio_file_length(file_path: pathlib.Path) -> Optional[float]:
+def get_audio_file_length(file_path: Path) -> Optional[float]:
     """
     Return the audio file length
     :param file_path: Path to the audio file.
@@ -46,13 +47,14 @@ def get_audio_file_length(file_path: pathlib.Path) -> Optional[float]:
     return round(audio_file.info.length, 1)
 
 
-def save_jingle_meta(jingle_file: pathlib.Path, jingle_title: str, jingle_id: str):
+def save_jingle_meta(jingle_file: Path, jingle_title: str, jingle_id: str):
     """
     Save jingle metadata to "<jingle_audio_filename>.meta".
     :param jingle_file: A pathlib.Path to the jingle audio file.
     :param jingle_title: Desired title for the jingle.
     :param jingle_id: Jingle's new ID.
     """
+    # TODO store actual lengths instead and add 0.2 when playing if that's really needed
     jingle_length = round(get_audio_file_length(jingle_file) + 0.2, 1)
 
     metadata = {
@@ -66,13 +68,30 @@ def save_jingle_meta(jingle_file: pathlib.Path, jingle_title: str, jingle_id: st
     with open(str(jingle_meta_file.resolve()), "w", encoding="utf8") as jingle_meta:
         dump(metadata, jingle_meta, indent=2, ensure_ascii=False)
 
+    log.info(
+        f"Saved jingle meta for: title=\"{jingle_title}\" path=\"{str(jingle_file)}\", ID=\"{jingle_id}\"."
+    )
+
+
+def sanitize_jingle_path(base_jingle_dir: Path, jingle_name: str) -> Path:
+    """
+    Clean up the jingle name (prevents weird characters, absolute paths and .. escapes).
+    :param base_jingle_dir: Base jingle directory that where the jingle will reside.
+    :param jingle_name: Jingle name.
+    :return: A complete absolute path to the jingle.
+    """
+    # Clean up weird parts of the path and only allow a name, no subdirectories
+    jingle_name_only: str = Path(jingle_name).name
+    sanitized_jingle_name: str = pathvalidate.sanitize_filename(jingle_name_only, replacement_text="_")
+    return (base_jingle_dir / Path(sanitized_jingle_name)).resolve()
+
 
 class Jingle:
     __slots__ = (
         "path", "id", "title", "length"
     )
 
-    def __init__(self, path: pathlib.Path, id_: str, title: str, length: float):
+    def __init__(self, path: Path, id_: str, title: str, length: float):
         self.path = path
         self.id = id_
         self.title = title

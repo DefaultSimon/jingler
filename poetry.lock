@@ -99,6 +99,17 @@ optional = false
 python-versions = ">=3.5, <4"
 
 [[package]]
+name = "pathvalidate"
+version = "2.4.1"
+description = "pathvalidate is a Python library to sanitize/validate a string such as filenames/file-paths/etc."
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[package.extras]
+test = ["allpairspy", "click", "faker", "pytest (>=6.0.1)", "pytest-discord (>=0.0.6)", "pytest-md-report (>=0.0.12)"]
+
+[[package]]
 name = "pycparser"
 version = "2.20"
 description = "C parser in Python"
@@ -161,7 +172,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f3b1b327b7adaf7b5f7528757962476d088d20e1f0e596c0bb60af400f43f17c"
+content-hash = "579d106997e69b6a364d3933b8c9fe828ddc3549b37c5f29e017effd7b8eeb15"
 
 [metadata.files]
 aiohttp = [
@@ -316,6 +327,10 @@ multidict = [
 mutagen = [
     {file = "mutagen-1.45.1-py3-none-any.whl", hash = "sha256:9c9f243fcec7f410f138cb12c21c84c64fde4195481a30c9bfb05b5f003adfed"},
     {file = "mutagen-1.45.1.tar.gz", hash = "sha256:6397602efb3c2d7baebd2166ed85731ae1c1d475abca22090b7141ff5034b3e1"},
+]
+pathvalidate = [
+    {file = "pathvalidate-2.4.1-py3-none-any.whl", hash = "sha256:f5dde7efeeb4262784c5e1331e02752d07c1ec3ee5ea42683fe211155652b808"},
+    {file = "pathvalidate-2.4.1.tar.gz", hash = "sha256:3c9bd94c7ec23e9cfb211ffbe356ae75f979d6c099a2c745ee9490f524f32468"},
 ]
 pycparser = [
     {file = "pycparser-2.20-py2.py3-none-any.whl", hash = "sha256:7582ad22678f0fcd81102833f60ef8d0e57288b6b5fb00323d101be910e35705"},
