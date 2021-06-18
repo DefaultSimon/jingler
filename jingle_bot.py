@@ -1,7 +1,9 @@
+# Nothing is imported, this sets up the logging
+# noinspection PyUnresolvedReferences
+import jinglebot.logs
+
 import logging
 import traceback
-
-logging.basicConfig(level=logging.INFO)
 
 from discord.ext.commands import Bot, when_mentioned_or, Context, CheckFailure
 
@@ -48,6 +50,5 @@ bot.add_cog(GuildSettingsCog(bot))
 bot.add_cog(JinglePlayerCog(bot))
 bot.add_cog(MiscCog(bot))
 bot.add_cog(UserSettingsCog(bot))
-
 
 bot.run(config.BOT_TOKEN)

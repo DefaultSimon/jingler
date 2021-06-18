@@ -9,3 +9,4 @@ data/*.toml
 
 jingles
 data/jinglebot.db
+data/logs

@@ -1,10 +1,9 @@
 import pathlib
-import os
 from typing import Any, List
 
 from toml import load
 
-BASE_DIR = pathlib.Path(os.path.dirname(__file__), "..")
+BASE_DIR = pathlib.Path(__file__).parent.parent.resolve()
 DATA_DIR = BASE_DIR / "data"
 
 CONFIGURATION_FILENAME = pathlib.Path("configuration.toml")
