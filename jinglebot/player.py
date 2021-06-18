@@ -41,6 +41,12 @@ async def get_guild_jingle(guild: Guild, override_mode: Optional[JingleMode] = N
 
 
 async def play_jingle(channel: VoiceChannel, jingle: Jingle, fail_silently: bool = True) -> bool:
+    # If already playing, don't try to connect
+    if channel.guild.voice_client is not None:
+        # Already playing somewhere, ignore
+        log.info(f"Wanted to play a jingle in \"{channel.name}\", but already connected somewhere.")
+        return False
+
     try:
         # noinspection PyTypeChecker
         connection: VoiceClient = await channel.connect()

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 import subprocess
@@ -53,6 +54,15 @@ class MiscCog(Cog, name="Misc"):
 
     @Cog.listener(name="on_ready")
     async def misc_on_ready(self):
-        log.info("Setting presence to \"jingles\".")
-        jingle_activity: Game = Game(name="jingles")
+        playing_str_with_version = f"jingles (v{pyproject.VERSION})"
+        playing_str = "jingles"
+
+        log.info(f"Setting presence to {playing_str_with_version}, waiting one minute.")
+        jingle_activity_with_version: Game = Game(name=playing_str_with_version)
+        await self._bot.change_presence(activity=jingle_activity_with_version)
+
+        await asyncio.sleep(60)
+
+        log.info(f"Setting presence to {playing_str}")
+        jingle_activity: Game = Game(name=playing_str)
         await self._bot.change_presence(activity=jingle_activity)
