@@ -1,1 +1,1 @@
-poetry run python jingle_bot.py
+poetry run python bot.py
