@@ -185,7 +185,7 @@ class JinglePlayerCog(Cog, name="Jingles"):
 
     @Cog.listener()
     async def on_voice_state_update(self, member: Member, state_before: VoiceState, state_after: VoiceState):
-        if member.id == self._bot.user.id:
+        if member.id == self._bot.user.id or member.bot:
             return
 
         guild_jingle_mode: JingleMode = database.guild_get_jingle_mode(member.guild.id)
