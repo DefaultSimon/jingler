@@ -1,4 +1,6 @@
 from enum import Enum
+from typing import Optional
+
 from discord import VoiceState
 
 
@@ -34,10 +36,17 @@ def get_voice_state_change(before: VoiceState, after: VoiceState) -> VoiceStateA
     :param after: A snapshot of "after".
     :return: A VoiceStateAction representing the detected action that took place between before and after.
     """
-    if before.channel is None and after.channel is not None:
+    before_channel_id: Optional[int] = before.channel.id if before.channel else None
+    after_channel_id: Optional[int] = after.channel.id if after.channel else None
+
+    if before_channel_id is None and after_channel_id is not None:
         return VoiceStateAction.JOINED
-    if before.channel is not None and after.channel is None:
+    if before_channel_id is not None and after_channel_id is None:
         return VoiceStateAction.LEFT
+
+    # JOINED also applies when the channel changes
+    if before_channel_id is not None and after_channel_id is not None and before_channel_id != after_channel_id:
+        return VoiceStateAction.JOINED
 
     elif not before.mute and after.mute:
         return VoiceStateAction.SERVER_MUTED
