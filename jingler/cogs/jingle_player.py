@@ -28,26 +28,31 @@ class JinglePlayerCog(Cog, name="Jingles"):
 
     @command(
         name="playrandom",
-        help="MManually play a random jingle in your current voice channel."
+        help="Manually play a random jingle in your current voice channel."
     )
     async def cmd_play(self, ctx: Context):
         # Find member's voice channel
-        voice_state: Optional[VoiceState] = ctx.author.voice
-        if not voice_state:
-            await ctx.send(f"{Emoji.WARNING} You're currently not in a voice channel.")
-            return
-
-        voice_channel: Optional[VoiceChannel] = voice_state.channel
+        voice_channel: Optional[VoiceChannel] = ctx.author.voice.channel if ctx.author.voice else None
         if not voice_channel:
             await ctx.send(f"{Emoji.WARNING} You're currently not in a voice channel.")
             return
 
+        if ctx.guild.voice_client is not None:
+            # Already playing somewhere
+            await ctx.reply(
+                f"{Emoji.RECEIPT} Already playing a jingle, please try again in a few moments."
+            )
+            return
+
         jingle = await get_guild_jingle(ctx.guild, JingleMode.RANDOM)
+
+        playing_msg = await ctx.reply(f"{Emoji.MEGA} Playing `{jingle}` in `#{voice_channel.name}`.")
+
         did_play = await play_jingle(voice_channel, jingle)
         if did_play:
-            await ctx.message.add_reaction(UnicodeEmoji.BALLOT_BOX_WITH_CHECK)
+            await playing_msg.add_reaction(UnicodeEmoji.BALLOT_BOX_WITH_CHECK)
         else:
-            await ctx.message.add_reaction(UnicodeEmoji.X)
+            await playing_msg.add_reaction(UnicodeEmoji.X)
 
     @command(
         name="listjingles",
@@ -213,8 +218,7 @@ class JinglePlayerCog(Cog, name="Jingles"):
         else:
             jingle = await get_guild_jingle(member.guild)
             log.info(
-                f"User \"{member.name}\" ({member.id}) does not have a theme song; "
-                f"picked from guild: \"{jingle.title}\" ({jingle.path.name})"
+                f"User \"{member.name}\" ({member.id}) picked from guild: \"{jingle}\"."
             )
 
         await play_jingle(target_voice_channel, jingle)

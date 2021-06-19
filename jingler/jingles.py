@@ -97,6 +97,9 @@ class Jingle:
         self.title = title
         self.length = length
 
+    def __str__(self):
+        return f"{self.title} ({self.path.name})"
+
 
 class JingleManager(metaclass=Singleton):
     def __init__(self):

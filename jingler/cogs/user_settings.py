@@ -33,10 +33,7 @@ class UserSettingsCog(Cog, name="UserSettings"):
                 f"You can set one using `{config.PREFIX}setthemesong`!"
             )
         else:
-            await ctx.send(
-                f"{Emoji.POSTAL_HORN} Your current theme song "
-                f"is `{theme_song.title} ({theme_song.path.name})`."
-            )
+            await ctx.send(f"{Emoji.POSTAL_HORN} Your current theme song is `{theme_song}`.")
 
     @command(
         name="setthemesong",
@@ -114,7 +111,4 @@ class UserSettingsCog(Cog, name="UserSettings"):
                 return
 
             db.user_set_theme_song_jingle_id(ctx.author.id, new_theme_song_id)
-            await ctx.send(
-                f"{Emoji.POSTAL_HORN} Your new theme song is "
-                f"`{new_theme_song.title} ({new_theme_song.path.name})`."
-            )
+            await ctx.send(f"{Emoji.POSTAL_HORN} Your new theme song is `{new_theme_song}`.")

@@ -23,6 +23,8 @@ class Emoji:
     DETECTIVE = ":detective:"
     TRUMPET = ":trumpet:"
     PLACARD = ":placard:"
+    MEGA = ":mega:"
+    RECEIPT = ":receipt:"
 
 
 class UnicodeEmoji:

@@ -56,7 +56,7 @@ class GuildSettingsCog(Cog, name="ServerSettings"):
             await ctx.send(
                 f"{Emoji.LEVEL_SLIDER} Jingle mode is set to `single` - "
                 f"the jingle played upon joining a voice channel will "
-                f"always be `{default_jingle.title} ({default_jingle.path.name})`"
+                f"always be `{default_jingle}`."
             )
         elif jingle_mode == JingleMode.RANDOM:
             await ctx.send(
@@ -114,8 +114,7 @@ class GuildSettingsCog(Cog, name="ServerSettings"):
             default_jingle: Jingle = jingle_manager.get_jingle_by_id(default_jingle_id)
             await ctx.send(
                 f"{Emoji.CHECKERED_FLAG} Guild jingle mode has been set to `single` "
-                f"- jingle `{default_jingle.title} ({default_jingle.path.name})` "
-                f"will be played upon members joining a voice channel."
+                f"- jingle `{default_jingle}` will be played upon members joining a voice channel."
             )
         elif mode_enum == JingleMode.RANDOM:
             await ctx.send(
@@ -135,8 +134,7 @@ class GuildSettingsCog(Cog, name="ServerSettings"):
             await ctx.send(f"{Emoji.INFORMATION_SOURCE} No default jingle is currently set. "
                            f"You can set one using `{config.PREFIX}setdefault`.")
         else:
-            await ctx.send(f"{Emoji.INFORMATION_SOURCE} The default jingle is currently set to "
-                           f"`{default_jingle.title} ({default_jingle.path.name})`")
+            await ctx.send(f"{Emoji.INFORMATION_SOURCE} The default jingle is currently set to  `{default_jingle}`.")
 
     @command(
         name="setdefault",
@@ -199,8 +197,7 @@ class GuildSettingsCog(Cog, name="ServerSettings"):
 
         database.guild_set_default_jingle_id(ctx.guild.id, new_default_jingle_id)
         await ctx.send(
-            f"{Emoji.BALLOT_BOX_WITH_CHECK} Default jingle "
-            f"set to `{new_default_jingle.title} ({new_default_jingle.path.name})`."
+            f"{Emoji.BALLOT_BOX_WITH_CHECK} Default jingle set to `{new_default_jingle}`."
         )
 
     @command(
