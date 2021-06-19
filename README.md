@@ -1,6 +1,6 @@
 # Jingler
 ![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue?style=flat-square)
-![Version](https://img.shields.io/badge/jingler-1.0.1-orange?style=flat-square)
+![Version](https://img.shields.io/badge/jingler-1.0.2-orange?style=flat-square)
 
 A Discord bot for spicing up your voice channel entry with random jingles, 
 custom member "theme songs" and more.
