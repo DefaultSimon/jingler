@@ -1,3 +1,7 @@
-echo "Starting Jingle bot..."
-screen -m -d -L -S DiscordJingleBot poetry run python bot.py
-echo -e "Done! Enter screen with \n\tscreen -r DiscordJingleBot"
+echo "Starting Jingler..."
+
+screen -m -d -L -S Jingler poetry run python bot.py
+
+echo "Done! Enter screen with"
+echo -e "    screen -r Jingler"
+
